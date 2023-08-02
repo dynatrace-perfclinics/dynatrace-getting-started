@@ -38,7 +38,7 @@ Also make sure to explore the following Dynatrace Apps and Use Cases:
 
 In your own tenant simply follow the steps to data into Dynatrace. The most popular options are
 * Deploy the [Dynatrace OneAgent](https://www.dynatrace.com/support/help/setup-and-configuration/dynatrace-oneagent) on VMs, [Kubernetes](https://www.dynatrace.com/support/help/setup-and-configuration/setup-on-k8s), OpenShift or CloudFoundry
-* Ingest OpenTelemetry, Prometheus or external logs
+* Ingest [OpenTelemetry](https://www.dynatrace.com/support/help/extend-dynatrace/opentelemetry), Prometheus(https://www.dynatrace.com/support/help/extend-dynatrace/extend-metrics/ingestion-methods/prometheus) or [external logs](https://www.dynatrace.com/support/help/extend-dynatrace/extend-logs)
 * Monitor your [Cloud Platforms](https://www.dynatrace.com/support/help/setup-and-configuration/setup-on-cloud-platforms) such as AWS, Google Cloud Platform, Azure or Heroku
 * Enable 600+ extensions such as SNMP, WMI, JMX, SQL and many more through the [Dynatrace Hub](https://www.dynatrace.com/hub/)
 
