@@ -1,12 +1,14 @@
 # What is Dynatrace and How to get started
-This repository contains supporting material for the clinic What is Dynatrace and How to get started!
+This repository contains supporting material for the episode *What is Dynatrace and How to get started!*
 * [Register for the Live Webinar](https://info.dynatrace.com/global-all-wc-observability-clinic-how-to-get-started-with-dynatrace-22392-registration.html)
 * [Watch it on YouTube (once available!](https://bit.ly/dtoneagenttutorials)
 
 ## Step 1: Get your own Dynatrace Trial
+
 Sign up for a new Dynatrace trial: https://bit.ly/dtsaastrial
 
 ## Step 2: Discover Dynatrace Sandbox Tenant
+
 Every Dynatrace Trial user has access to a special [Dynatrace Sandbox tenant](https://wkf10640.apps.dynatrace.com/) that allows you to explore Dynatrace and all our use cases and capabilities.
 The Sandbox tenant is observing several applications running on k8s clusters. 
 
