@@ -24,9 +24,9 @@ And some notebooks to play around with (more to come):
 
 Also make sure to explore the following Dynatrace Apps and Use Cases:
 * [Davis Detected Problems](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.problems/ui/problems?gtf=-24h+to+now) explore the power of automated root cause detection
-* Kubernetes [Clusters](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes/ui/kubernetes/KUBERNETES_CLUSTER-279D12C72068548C) & [Workloads](s://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes.workloads/ui/entity/list/CLOUD_APPLICATION?gtf=-24h+to+now)
+* Kubernetes [Clusters](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes/ui/kubernetes/KUBERNETES_CLUSTER-279D12C72068548C) & [Workloads](s://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes.workloads/ui/entity/list/CLOUD_APPLICATION)
 * Understand your [SLOs (Service Level Objectives)](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.slo/ui/slo)
-* [A service](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes.workloads/ui/entity/CLOUD_APPLICATION-CA2305D4EC324955?gtf=-24h+to+now&gf=all) running in a K8s workload 
+* [A service](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.kubernetes.workloads/ui/entity/CLOUD_APPLICATION-CA2305D4EC324955) running in a K8s workload 
 * [Application Security Overview](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.security.overview/ui/security/overview), [Vulnerabilities](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.vulnerabilities/ui/security/vulnerabilities) and [Attacks](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.attacks/ui/security/attacks)
 * Diagnose and analyze [distributed traces](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.distributed.traces/ui/diagnostictools/purepaths)
 * Explore your [logs in a Notebook](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=f90a132b-36fd-4735-9d75-66e5a84a7ea2)
