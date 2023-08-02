@@ -61,6 +61,6 @@ Learn more about building your own Dynatrace App based on AppEngine on the [Dyna
 To learn more go to:
 * [Dynatrace Observability Clinics](https://bit.ly/oneagenttutorials)
 * [Dynatrace How To's](https://bit.ly/dthowto)
-* [Dynatrace Tips & Tricks](htts://bit.ly/dttipstricks)
+* [Dynatrace Tips & Tricks](https://bit.ly/dttipstricks)
 * [Dynatrace University](https://university.dynatrace.com)
 * [Dynatrace Community](https://community.dynatrace.com)
