@@ -4,7 +4,7 @@ This notebook provides links and explanation for a handful or interesting use ca
 
 ---
 
-# 1: Identify Traces impacted by Database Queries (too many, too slow ...)
+## 1: Identify Traces impacted by Database Queries (too many, too slow ...)
 **Problem Statement:** A common performance problem are requests that either make a lot of database roundtrips or execute database queries that take a very long time.
 
 **How Dynatrace helps:** Dynatrace makes it easy to find those traces so you can easily identify on whether to optimize your code to execute queries more efficient or talk with the database team to optimize those queries on the database engine.
