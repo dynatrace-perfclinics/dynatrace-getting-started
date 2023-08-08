@@ -7,10 +7,10 @@ This repository contains supporting material for the episode *What is Dynatrace 
 
 Sign up for a new Dynatrace trial: https://bit.ly/dtsaastrial
 
-## Step 2: Discover Dynatrace Sandbox Tenant
+## Step 2: Discover Dynatrace Playground Tenant
 
-Every Dynatrace Trial user has access to a special [Dynatrace Sandbox tenant](https://wkf10640.apps.dynatrace.com/) that allows you to explore Dynatrace and all our use cases and capabilities.
-The Sandbox tenant is observing several applications running on k8s clusters. 
+Every Dynatrace Trial user has access to a special [Discover Dynatrace (Playground) Tenant](https://wkf10640.apps.dynatrace.com/) that allows you to explore Dynatrace and all our use cases and capabilities.
+The Playground tenant is observing several applications running on k8s clusters. 
 
 Some shared read-only dashboards I've uploaded for you:
 * [Getting Started Dashboard](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=eaa07354-fcf8-4723-8c26-8ca2b0f120a4)
@@ -24,6 +24,9 @@ And some notebooks to play around with (more to come):
 
 I also added some Tutorial Hands-On Notebooks with Step-by-Step instructions:
 * [How to do Distributed Trace and Database Diagnostics](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=fc1ff600-6819-4aee-b771-0f3219c4532c)
+* [How to Anlayze Infrastructure with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=28daf510-286f-4761-b681-659ab072a6f2)
+* [How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+
 
 Also make sure to explore the following Dynatrace Apps and Use Cases:
 * [Davis Detected Problems](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.problems/ui/problems?gtf=-24h+to+now) explore the power of automated root cause detection
@@ -49,7 +52,17 @@ In your own tenant simply follow the steps to data into Dynatrace. The most popu
 
 ## Step 4: Analyze your data
 
-Like we did on the Sandbox Tenant - start exploring your data by opening the respective Dynatrace App for your Use Case.
+Like we did on the Playground Tenant - start exploring your data by opening the respective Dynatrace App for your Use Case.
+
+You can also follow my Hands-On Tutorial Notebooks on the Discover Dynatrace Tenant:
+* [How to do Distributed Trace and Database Diagnostics](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=fc1ff600-6819-4aee-b771-0f3219c4532c)
+* [How to Anlayze Infrastructure with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=28daf510-286f-4761-b681-659ab072a6f2)
+* [How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+
+If you dont have access to the Discover Dynatrace Tenant then check out the following readme's:
+* [How to do Distributed Trace and Database Diagnostics](./how-to-diagnostics/how-to-distributed-trace-database.md)
+* [How to Anlayze Infrastructure with Dynatrace](./how-to-diagnostics/how-to-analyze-infrastructure.md)
+* [How to Analyze Kubernetes Clusters and Workloads with Dynatrace](./how-to-diagnostics/how-to-analyze-k8s.md)
 
 ## Step 5: Integrate and Automate based on your data
 

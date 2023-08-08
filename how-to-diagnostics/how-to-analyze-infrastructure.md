@@ -1,5 +1,6 @@
-# How to do Analyze Infrastructure with Dynatrace
+# How to Analyze Infrastructure with Dynatrace
 This notebook provides links and explanation for a handful or use cases when analyzing infrastructure related issues such as high CPU, disk, logs, ....
+
 **Target Audience**: ITOps, SREs
 
 ---
