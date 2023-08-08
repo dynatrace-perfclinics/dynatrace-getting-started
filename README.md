@@ -3,6 +3,20 @@ This repository contains supporting material for the episode *What is Dynatrace 
 * [Register for the Live Webinar](https://info.dynatrace.com/global-all-wc-observability-clinic-how-to-get-started-with-dynatrace-22392-registration.html)
 * [Watch it on YouTube (once available!](https://bit.ly/dtoneagenttutorials)
 
+**Table of Contents:**
+* [Step 1: Get your own Dynatrace Trial](#step-1-get-your-own-dynatrace-trial)
+* [Step 2: Discover Dynatrace Playground Tenant](#step-2-discover-dynatrace-playground-tenant)
+* [Step 3: Ingest Data into your own Tenant](#step-3-ingest-data-into-your-own-tenant)
+* [Step 4: Analyze your Data](#step-4-analyze-your-data)
+* [Step 5: Integrate and Automate based on your data](#step-5-integrate-and-automate-based-on-your-data)
+* [Step 6: Extend Dynatrace with an Extension or App](#step-6-extend-dynatrace-with-an-extension-or-app)
+
+If you have questions or feedback:
+* Create an issue on this GitHub Repository if you found an issue with the tutorial:
+* Ask the Dynatrace community on https://community.dynatrace.com
+* For everything else: [devrel@dynatrace.com](mailto:devrel@dynatrace.com)
+
+
 ## Step 1: Get your own Dynatrace Trial
 
 Sign up for a new Dynatrace trial: https://bit.ly/dtsaastrial
@@ -68,7 +82,7 @@ If you **dont have access** to the Discover Dynatrace Tenant then **check them o
 
 Start by building workflows to connect Dynatrace with your tool ecosystem.
 
-The Playground Tenant has some Workflows setup to showcase automated release validation with the Site Reliability Guardian
+The Playground Tenant has [some Workflows](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.automations/workflows) setup to showcase automated release validation with the [(App) Site Reliability Guardian](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.site.reliability.guardian/)
 
 In your own tenant feel free to explore all the capabilities of Dynatrace Workflows.
 To learn more about Workflows check out:
@@ -78,6 +92,8 @@ To learn more about Workflows check out:
 ## Step 6: Extend Dynatrace with an Extension or App
 
 Learn more about building your own Dynatrace App based on AppEngine on the [Dynatrace Developer Portal](https://developer.dynatrace.com)
+
+Also explore the [(App) Dynatrace Hub](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.hub/) with apps that are already available
 
 # Learn more ...
 
