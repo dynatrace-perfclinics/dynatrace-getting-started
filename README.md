@@ -40,6 +40,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to do Distributed Trace and Database Diagnostics](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=fc1ff600-6819-4aee-b771-0f3219c4532c)
 * [(Live Tutorial Notebook) How to Anlayze Infrastructure with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=28daf510-286f-4761-b681-659ab072a6f2)
 * [(Live Tutorial Notebook) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+* [(Live Tutorial Notebook) How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
 
 
 Also make sure to explore the following **Dynatrace Apps** and Use Cases:
@@ -72,11 +73,14 @@ You can also follow my **Hands-On Tutorial Notebooks** on the **Discover Dynatra
 * [(Live Tutorial Notebooks) How to do Distributed Trace and Database Diagnostics](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=fc1ff600-6819-4aee-b771-0f3219c4532c)
 * [(Live Tutorial Notebooks) How to Anlayze Infrastructure with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=28daf510-286f-4761-b681-659ab072a6f2)
 * [(Live Tutorial Notebooks) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+* [(Live Tutorial Notebook) How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
+
 
 If you **dont have access** to the Discover Dynatrace Tenant then **check them out in these readme's**:
 * [(Readme) How to do Distributed Trace and Database Diagnostics](./how-to-diagnostics/how-to-distributed-trace-database.md)
 * [(Readme) How to Anlayze Infrastructure with Dynatrace](./how-to-diagnostics/how-to-analyze-infrastructure.md)
 * [(Readme) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](./how-to-diagnostics/how-to-analyze-k8s.md)
+* [(Readme) How to Analyze Synthethic Tests with Dynatrace](./how-to-diagnostics/how-to-analyze-synthetic.md)
 
 ## Step 5: Integrate and Automate based on your data
 
