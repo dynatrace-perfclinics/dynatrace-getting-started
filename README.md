@@ -42,6 +42,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
 * [(Live Tutorial Notebook) How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
+* [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 
 
 Also make sure to explore the following **Dynatrace Apps** and Use Cases:
@@ -76,6 +77,7 @@ You can also follow my **Hands-On Tutorial Notebooks** on the **Discover Dynatra
 * [(Live Tutorial Notebooks) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
 * [(Live Tutorial Notebook) How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
+* [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 
 
 If you **dont have access** to the Discover Dynatrace Tenant then **check them out in these readme's**:
@@ -84,6 +86,7 @@ If you **dont have access** to the Discover Dynatrace Tenant then **check them o
 * [(Readme) How to Analyze Kubernetes Clusters and Workloads with Dynatrace](./how-to-diagnostics/how-to-analyze-k8s.md)
 * [(Readme) How to Analyze Synthethic Tests with Dynatrace](./how-to-diagnostics/how-to-analyze-synthetic.md)
 * [(Readme) How to work with Davis-detected Problems](./how-to-diagnostics/how-to-analyze-problems.md)
+* [(Readme) How to do Application Security with Dynatrace](./how-to-diagnostics/how-to-analyze-appsec.md)
 
 ## Step 5: Integrate and Automate based on your data
 

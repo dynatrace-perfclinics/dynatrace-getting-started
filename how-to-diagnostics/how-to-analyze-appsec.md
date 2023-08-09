@@ -1,0 +1,47 @@
+# How to do Application Security with Dynatrace
+This notebook provides links and explanation for use cases centered around Application Security such as analyzing vulnerabilities as well as understanding current attacks and protect against them.
+
+**Target Audience**: Cyber Security, AppSec, Platform Owners
+
+To learn more about Application Security with Dynatrace also see:
+* [(Website) Security Protection & Security Analytics](https://www.dynatrace.com/platform/application-security/)
+* [(Video) Automate Application Security with Dynatrace](https://www.youtube.com/watch?v=_tpsTNG5vb0)
+* [(Doc) Application Security with Dynatrace](https://www.dynatrace.com/support/help/platform-modules/application-security)
+
+---
+
+## 1. Analyze Application Security Third-party Vulnerabilities with Dynatrace
+**Problem Statement:** As an application and platform owner I need to know whether I have any known vulnerabilities (3rd party or code) in my environment that has a potential risk for my organization 
+
+**How Dynatrace helps:** Dynatrace Application Security provides automatic detection of third party and code vulnerabilities. Every security issue will be ranked with the [Davis Security Scare](https://www.dynatrace.com/support/help/platform-modules/application-security/vulnerability-analytics/third-party-vulnerabilities/davis-security-score) which is based on insights from our partner [Snyk](https://dt-url.net/rwf0nx0?dt=s) as well as on the information Dynatrace has about your environment (exposed to the internet, access to confidential data, ...)
+
+**Steps**:
+1. Open the [Security Overview App](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.security.overview/ui/security/overview)
+2. Get an overview of all third-party vulnerabilities ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_thirdparty_overview.png)
+3. Drill into critical third-party vulnerabilities ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_thirdparty_list.png)
+4. Get the details of a third-party vulnerability ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_thirdparty_detail.png)
+
+---
+
+## 2. Analyze Application Security Code Vulnerabilities with Dynatrace
+**Problem Statement:** As an application and platform owner I need to know whether I have any known code-level vulnerabilities in my environment that has a potential risk for my organization 
+
+**How Dynatrace helps:** Dynatrace Application Security provides automatic detection of third party and code vulnerabilities. Every security issue will be ranked with the [Davis Security Scare](https://www.dynatrace.com/support/help/platform-modules/application-security/vulnerability-analytics/third-party-vulnerabilities/davis-security-score) which is based on insights from our partner [Snyk](https://dt-url.net/rwf0nx0?dt=s) as well as on the information Dynatrace has about your environment (exposed to the internet, access to confidential data, ...)
+
+**Steps**:
+1. Open the [Security Overview App](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.security.overview/ui/security/overview)
+2. Get an overview of all code-level vulnerabilities ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_codelevel_overview.png)
+3. Drill into critical code-level vulnerabilities ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_codelevel_list.png)
+4. Get the details of a third-party vulnerability ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_codelevel_detail.png)
+
+---
+
+## 3. Analyze Application Security Attacks with Dynatrace
+**Problem Statement:** As an application and platform owner I need to know whether any vulnerabilities are currently being used by hackers for active attacks
+
+**How Dynatrace helps:** Dynatrace Application Security provides automatic detection of runtime attacks on code level vulnerabilities and gives you the option to protect your app from those attacks through the [Runtime Application Protection](https://www.dynatrace.com/support/help/platform-modules/application-security/application-protection) capability.
+
+**Steps**:
+1. Open the [Security Attack App](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.classic.attacks/ui/security/attacks)
+2. Get an overview of all current and past attacks ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_attacks_overview.png)
+3. Learn more about an attack and protect yourself ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_security_attacks_details.png)
