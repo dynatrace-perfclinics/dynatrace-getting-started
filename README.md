@@ -1,7 +1,9 @@
 # What is Dynatrace and How to get started
 This repository contains supporting material for the episode *What is Dynatrace and How to get started!*
-* [Register for the Live Webinar](https://info.dynatrace.com/global-all-wc-observability-clinic-how-to-get-started-with-dynatrace-22392-registration.html)
-* [Watch it on YouTube (once available!](https://bit.ly/dtoneagenttutorials)
+
+[![Watch it on YouTube](https://img.youtube.com/vi/rw8u3oZ4RdY/0.jpg)](https://www.youtube.com/watch?v=rw8u3oZ4RdY)
+
+[>> More tutorials on YouTube](https://bit.ly/dtsaastrial)
 
 **Table of Contents:**
 * [Step 1: Get your own Dynatrace Trial](#step-1-get-your-own-dynatrace-trial)
