@@ -1,16 +1,17 @@
-# How to make your K8s Platform Observable with Dynatrace
-This notebook provides links and explanation for making your K8s-based Platform Observable
+# How to make your K8s-based Internal Development Platform Observable - Part 1
+This notebook provides links and explanation for making your K8s-based Platform Observable. Its a tutorial used in the Observability Clinic called **The Observability Guide to Platform Engineering - Part 1**
 
-**Got questions?**: [devrel@dynatrace.com]
+**Got questions?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Platform%20Observability%20Tutorial)
 
-**Target Audience**: Kubernetes Admins, SREs, Platform Engineers
+**Target Audience**: Platform Engineers, Kubernetes Admins, SREs
+
+To learn more about Platform Engineering access my KCD Talk Resources on The Opportunity of Platform Engineerig
+* [(YouTube Video)Talk from KCD Munich](https://www.youtube.com/watch?v=5WDuVUFvELY)
+* [(Slides)Talk from KCD Munich](https://www.slideshare.net/grabnerandi/kcd-munich-cloud-native-platform-dilemma-turning-it-into-an-opportunity)
 
 To learn more about Kubernetes Monitoring with Dynatrace also see:
 * [(Website) Kubernetes monitoring](https://www.dynatrace.com/technologies/kubernetes-monitoring/)
 * [(Doc) Set up Dynatrace on Kubernetes](https://www.dynatrace.com/support/help/setup-and-configuration/setup-on-k8s)
-
-To learn more about Platform Engineering watch my Video on Platform Engineering
-* [(YouTube Video)Talk from KCD Munich](https://www.youtube.com/watch?v=5WDuVUFvELY)
 
 ---
 
