@@ -46,6 +46,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
 * [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 * [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
+* [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
 
 
 Also make sure to explore the following **Dynatrace Apps** and Use Cases:
@@ -82,6 +83,7 @@ You can also follow my **Hands-On Tutorial Notebooks** on the **Discover Dynatra
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
 * [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 * [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
+* [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
 
 If you **dont have access** to the Discover Dynatrace Tenant then **check them out in these readme's**:
 * [(Readme) How to do Distributed Trace and Database Diagnostics](./how-to-diagnostics/how-to-distributed-trace-database.md)
@@ -91,6 +93,7 @@ If you **dont have access** to the Discover Dynatrace Tenant then **check them o
 * [(Readme) How to work with Davis-detected Problems](./how-to-diagnostics/how-to-analyze-problems.md)
 * [(Readme) How to do Application Security with Dynatrace](./how-to-diagnostics/how-to-analyze-appsec.md)
 * [(Readme) How to Analyze Logs relevant for me](./how-to-diagnostics/how-to-analyze-logs-relevant-forme.md)
+* [(Readme) How to make your K8s Platform Observable](./how-to-diagnostics/how-to-analyze-platform-k8s.md)
 
 ## Step 5: Integrate and Automate based on your data
 
