@@ -1,11 +1,13 @@
-# How to make your K8s-based Internal Development Platform Observable - Part 1
-This notebook provides links and explanation for making your K8s-based Platform Observable. Its a tutorial used in the Observability Clinic called **The Observability Guide to Platform Engineering - Part 1**
+# The Observability Guide to Platform Engineering - Part 1
+This notebook was used in this [Observability Clinic](https://info.dynatrace.com/global-all-wc-observability-clinic-platform-engineering-22728-registration.html) and provides links, best practices and explanation for making your K8s-based IDP (Internal Development Platform) Observable with Dynatrace
 
-**Got questions?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Platform%20Observability%20Tutorial)
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Platform%20Observability%20Tutorial)
 
 **Target Audience**: Platform Engineers, Kubernetes Admins, SREs
 
-To learn more about Platform Engineering access my KCD Talk Resources on The Opportunity of Platform Engineerig
+![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_platform_k8s_referencearchitecture.png)
+
+To learn more about Platform Engineering access my KCD Talk Resources on The Opportunity of Platform Engineering
 * [(YouTube Video)Talk from KCD Munich](https://www.youtube.com/watch?v=5WDuVUFvELY)
 * [(Slides)Talk from KCD Munich](https://www.slideshare.net/grabnerandi/kcd-munich-cloud-native-platform-dilemma-turning-it-into-an-opportunity)
 
