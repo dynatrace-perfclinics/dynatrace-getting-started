@@ -47,6 +47,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 * [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
 * [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
+* [(Live Tutorial Notebook) How to analyze DORA Metrics with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=7f5c269b-48bc-4346-8935-15ccca3bc5ea)
 
 
 Also make sure to explore the following **Dynatrace Apps** and Use Cases:
@@ -94,6 +95,7 @@ If you **dont have access** to the Discover Dynatrace Tenant then **check them o
 * [(Readme) How to do Application Security with Dynatrace](./how-to-diagnostics/how-to-analyze-appsec.md)
 * [(Readme) How to Analyze Logs relevant for me](./how-to-diagnostics/how-to-analyze-logs-relevant-forme.md)
 * [(Readme) How to make your K8s Platform Observable](./how-to-diagnostics/how-to-analyze-platform-k8s.md)
+* [(Readme) How to analyze DORA with Dynatrace ](./how-to-diagnostics/how-to-analyze-dora.md)
 
 ## Step 5: Integrate and Automate based on your data
 
