@@ -45,12 +45,26 @@ A couple of best practices:
 
 ---
 
-# Step 3: Explore Default K8s Dashboards
+# Step 3: Validate core K8s Observability through default K8s Dashboards
 Dynatrace automatically provides a set of additional Kubernetes dashboards that you can access from the Kubernetes App
 ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_platform_k8s_accessdashboards.png)
 
 ---
 
-# Step 4: More tutorials on K8s Observability
+# Next steps: More tutorials on K8s Observability & Platform Best Practices
 
-To learn more about how to explore logs, metrics, traces, events, security ... check out the Tutorial Notebook [How to analyze your K8s cluster](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+Once we have basic observability for your K8s-based Platform we have additional use cases around Release Awareness & Release Observability, Ownership and DORA reporting:
+* [How to enable Release Observability with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b457adab-eea1-43fb-bffe-450e4dbd4649)
+* [How to define Ownership in Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=6f991064-9a32-454a-b837-2beb8012c0bb)
+* [How to analyze DORA with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=7f5c269b-48bc-4346-8935-15ccca3bc5ea)
+
+I also suggest that you look into setting up Synthetic Tests for each critical service and make yourself familiar with all diagnostics capabilities
+* [How to Anlayze Infrastructure with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=28daf510-286f-4761-b681-659ab072a6f2)
+* [How to Analyze Kubernetes Clusters and Workloads with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b1a22f8e-4e3e-4c5a-90b0-f072b53c5f91)
+* [How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
+* [How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
+* [How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
+* [How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
+
+## Feedback, Questions, Need more details?
+To improve these tutorials please provide feedback by sending us an email: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Platform%20Observability%20Tutorial)
