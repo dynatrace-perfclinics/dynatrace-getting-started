@@ -33,6 +33,7 @@ Some shared **read-only Dynatraced Dashboards** I've uploaded for you:
 * [(Live Dashboard) K8s Cluster Overview](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=906052ed-d03c-4a33-a302-6f7e55f5e4bd)
 * [(Live Dashboard) K8s Namespace Overview](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=19014900-50c3-4239-9ffa-3888cef882b4)
 * [(Live Dashboard) EasyTrade Dashboard](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=d2ae8659-2b0a-4b10-9546-5114b2fbf3a6)
+* [(Live Dashboard) How to get Ownership Overview](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=19de7d7b-477e-4134-ba2a-3d1ee776096b)
 
 And some **read only Dynatrace Notebooks** to play around with (more to come):
 * [(Live Notebook) Getting Started Notebook](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=bc440f34-626b-4303-b591-923d722d5600)
