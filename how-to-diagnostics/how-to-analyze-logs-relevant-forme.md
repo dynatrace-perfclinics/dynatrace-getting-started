@@ -3,6 +3,8 @@ This notebook provides links and explanation on how to analyze logs that are rel
 
 **Target Audience**: SREs, App Owners, Developers, IT Ops ...
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Logs)
+
 To learn more about Dynatrace Log Analytics or DQL go here:
 * [(Website) Dynatrace Log Analytics](https://www.dynatrace.com/platform/log-management-analytics/)
 * [(Doc) Dynatrace Query Language (DQL)](https://www.dynatrace.com/support/help/platform/grail/dynatrace-query-language)

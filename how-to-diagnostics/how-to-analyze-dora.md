@@ -8,6 +8,8 @@ This notebook provides best practices on using Dynatrace to monitor some of the 
 **What are DORA metrics and their performance levels?**
 https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance
 
+![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/howto_dora_overview.png)
+
 ---
 
 # Step 1: Sending Deployment Events to Dynatrace

@@ -3,6 +3,8 @@ This notebook provides links and explanation for a handful or use cases when ana
 
 **Target Audience**: Kubernetes Admins, SREs, Platform Engineers
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20K8s)
+
 To learn more about Kubernetes Monitoring with Dynatrace also see:
 * [(Website) Kubernetes monitoring](https://www.dynatrace.com/technologies/kubernetes-monitoring/)
 * [(Doc) Set up Dynatrace on Kubernetes](https://www.dynatrace.com/support/help/setup-and-configuration/setup-on-k8s)

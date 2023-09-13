@@ -1,7 +1,9 @@
 # How to do Distributed Trace and Database Diagnostics with Dynatrace
 This notebook provides links and explanation for a handful or interesting use cases around Diagnostics with Dynatrace to identify hotspots in database access as well as hotspots in distributed traces.
+
 **Target Audience**: Software & Performance Engineers, Architects, SREs
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Developer)
 ---
 
 ## 1: Identify Traces impacted by Database Queries (too many, too slow ...)

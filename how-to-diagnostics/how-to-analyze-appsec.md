@@ -3,6 +3,8 @@ This notebook provides links and explanation for use cases centered around Appli
 
 **Target Audience**: Cyber Security, AppSec, Platform Owners
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Security)
+
 To learn more about Application Security with Dynatrace also see:
 * [(Website) Security Protection & Security Analytics](https://www.dynatrace.com/platform/application-security/)
 * [(Video) Automate Application Security with Dynatrace](https://www.youtube.com/watch?v=_tpsTNG5vb0)

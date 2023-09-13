@@ -3,6 +3,8 @@ This notebook provides links and explanation on how to best navigate and work wi
 
 **Target Audience**: SREs, App Owners, Developers, IT Ops ...
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Davis%20Problems)
+
 To learn more about Dynatrace Davis and how the Root Cause detection works go here:
 * [(Website) Meet Davis](https://www.dynatrace.com/platform/artificial-intelligence/)
 * [(Doc) Davis AI](https://www.dynatrace.com/support/help/platform/davis-ai)

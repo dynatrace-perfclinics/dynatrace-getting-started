@@ -3,6 +3,8 @@ This notebook provides links and explanation for a handful or use cases when ana
 
 **Target Audience**: ITOps, SREs
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Infra)
+
 ---
 
 ## 1. Access all relevant data when managing infrastructure: metrics, logs, vulnerabilities, ...

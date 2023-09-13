@@ -3,6 +3,8 @@ This notebook provides links and explanation for a handful or use cases when set
 
 **Target Audience**: SREs, App Owners, Developers
 
+**Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20Synthetics)
+
 To learn more about Synthetic Monitoring with Dynatrace also see:
 * [(Website) Synthetic monitoring](https://www.dynatrace.com/platform/synthetic-monitoring/)
 * [(Doc) Synthetic Monitoring](https://www.dynatrace.com/support/help/platform-modules/digital-experience/synthetic-monitoring)
