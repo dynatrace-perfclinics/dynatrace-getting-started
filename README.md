@@ -46,10 +46,9 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to Analyze Synthetic Tests with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=8cb9e594-b3c6-482f-b560-4c127cc80688)
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
 * [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
-* [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/
+* [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
 
-I added new Notebooks for my **The Observability Guide to Platform Engineering** Series
-#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
+I added new Notebooks for my **The Observability Guide to Platform Engineering** Series:
 * [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
 * [(Live Tutorial Notebook) How to analyze DORA Metrics with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=7f5c269b-48bc-4346-8935-15ccca3bc5ea)
 * [(Live Tutorial Notebook) How to enable Release Observability with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b457adab-eea1-43fb-bffe-450e4dbd4649)
