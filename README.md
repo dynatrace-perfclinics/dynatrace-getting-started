@@ -49,7 +49,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
 * [(Live Tutorial Notebook) How to analyze DORA Metrics with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=7f5c269b-48bc-4346-8935-15ccca3bc5ea)
 * [(Live Tutorial Notebook) How to enable Release Observability with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b457adab-eea1-43fb-bffe-450e4dbd4649)
-
+* [(Live Tutorial Notebook) How to define Ownership in Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=6f991064-9a32-454a-b837-2beb8012c0bb)
 
 
 Also make sure to explore the following **Dynatrace Apps** and Use Cases:
@@ -89,6 +89,8 @@ You can also follow my **Hands-On Tutorial Notebooks** on the **Discover Dynatra
 * [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
 * [(Live Tutorial Notebook) How to analyze DORA Metrics with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=7f5c269b-48bc-4346-8935-15ccca3bc5ea)
 * [(Live Tutorial Notebook) How to enable Release Observability with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b457adab-eea1-43fb-bffe-450e4dbd4649)
+* [(Live Tutorial Notebook) How to define Ownership in Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=6f991064-9a32-454a-b837-2beb8012c0bb)
+
 
 
 If you **dont have access** to the Discover Dynatrace Tenant then **check them out in these readme's**:
@@ -100,7 +102,9 @@ If you **dont have access** to the Discover Dynatrace Tenant then **check them o
 * [(Readme) How to do Application Security with Dynatrace](./how-to-diagnostics/how-to-analyze-appsec.md)
 * [(Readme) How to Analyze Logs relevant for me](./how-to-diagnostics/how-to-analyze-logs-relevant-forme.md)
 * [(Readme) How to make your K8s Platform Observable](./how-to-diagnostics/how-to-analyze-platform-k8s.md)
-* [(Readme) How to analyze DORA with Dynatrace ](./how-to-diagnostics/how-to-analyze-dora.md)
+* [(Readme) How to analyze DORA with Dynatrace](./how-to-diagnostics/how-to-analyze-dora.md)
+* [(Readme) How to enable Release Observability with Dynatrace](./how-to-diagnostics/how-to-release-observability.md)
+* [(Readme) How to define Ownership in Dynatrace](./how-to-diagnostics/how-to-define-ownership.md)
 
 
 ## Step 5: Integrate and Automate based on your data
