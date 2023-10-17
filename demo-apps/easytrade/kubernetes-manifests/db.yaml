@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop
+    spec:
+      containers:
+        - name: db
+          image: gcr.io/dynatrace-demoability/easytrade/db:44e1877
+          ports:
+            - containerPort: 1433
+          env:
+            - name: SA_PASSWORD
+              value: "yourStrong(!)Password"
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 300m
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    dt.owner: team-workshop
+spec:
+  type: ClusterIP
+  selector:
+    app: db
+  ports:
+    - name: mssql
+      port: 1433
+      targetPort: 1433

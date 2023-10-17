@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: easytravel
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: easytravel-frontend
+  name: easytravel-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: easytravel-frontend
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: easytravel-frontend
+        app: easytravel-frontend
+      annotations:
+        support.contact: "demoability@dynatrace.com"
+        support.channel: "#team-demoability"
+    spec:
+      containers:
+      - env:
+        - name: CATALINA_OPTS
+          value: -Dconfig.apmServerDefault=APM -Xmx525m -Djava.security.egd=file:/dev/./urandom
+        - name: ET_BACKEND_URL
+          value: http://easytravel-backend:8080
+        image: dynatrace/easytravel-angular-frontend
+        imagePullPolicy: "Always"
+        name: easytravel-frontend
+        ports:
+        - containerPort: 8080
+        resources: {}
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 8080
+            scheme: HTTP
+          periodSeconds: 60
+          initialDelaySeconds: 240
+          successThreshold: 1
+          timeoutSeconds: 1
+      restartPolicy: Always
+status: {}

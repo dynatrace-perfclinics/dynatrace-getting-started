@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: headlessloadgen
+  name: headlessloadgen
+spec:
+  selector:
+    matchLabels:
+      app: headlessloadgen
+  template:
+    metadata:
+      labels:
+        app: headlessloadgen
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop
+    spec:
+      containers:
+        - name: headlessloadgen
+          image: gcr.io/dynatrace-demoability/headlessloadgen:0deedcc
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+            limits:
+              memory: "900Mi"
+              cpu: "700m"
+          env:
+            - name: EASY_TRADE_DOMAIN
+              value: frontendreverseproxy
+            - name: EASY_TRADE_PORT
+              value: "80"
+            - name: NODE_LOG_LEVEL
+              value: "info"
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace

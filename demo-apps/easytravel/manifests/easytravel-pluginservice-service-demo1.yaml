@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: easytravel
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: easytravel-pluginservice
+  name: easytravel-pluginservice
+spec:
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+    nodePort: 30685
+  selector:
+    io.kompose.service: easytravel-pluginservice
+  type: NodePort
+status:
+  loadBalancer: {}

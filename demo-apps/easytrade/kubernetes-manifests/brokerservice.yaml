@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brokerservice
+spec:
+  selector:
+    matchLabels:
+      app: brokerservice
+  template:
+    metadata:
+      labels:
+        app: brokerservice
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop
+    spec:
+      containers:
+        - name: brokerservice
+          image: gcr.io/dynatrace-demoability/easytrade/brokerservice:44e1877
+          ports:
+            - containerPort: 80
+          env:
+            - name: MANAGER_HOSTANDPORT
+              value: "manager:80"
+            - name: ACCOUNTSERVICE_HOSTANDPORT
+              value: "accountservice:8080"
+            - name: PRICINGSERVICE_HOSTANDPORT
+              value: "pricingservice:80"
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 300Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: brokerservice
+  labels:
+    dt.owner: team-workshop
+spec:
+  type: ClusterIP
+  selector:
+    app: brokerservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

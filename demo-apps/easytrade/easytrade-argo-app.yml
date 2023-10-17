@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    dt.owner: "platform_team"
+  name: easytrade
+  namespace: easytrade
+spec:
+  source:
+    repoURL: 'https://github.com/grabnerandi/plateng-tutorial-test.git'
+    targetRevision: main
+    path: "demo-apps/easytrade/kubernetes-manifests"
+  destination:
+    namespace: easytrace
+    server: 'https://kubernetes.default.svc'
+  project: default
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m0s
+        factor: 2

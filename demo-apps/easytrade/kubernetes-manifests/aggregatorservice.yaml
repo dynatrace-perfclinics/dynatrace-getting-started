@@ -1,0 +1,187 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-common
+data:
+  NODE_ENV: "production"
+  OFFER_SERVICE: "offerservice:8080"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-1
+data:
+  PLATFORM: "dynatestsieger.at"
+  STARTER_PACKAGE_PROBABILITY: "0.6"
+  LIGHT_PACKAGE_PROBABILITY: "0.3"
+  PRO_PACKAGE_PROBABILITY: "0.1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-2
+data:
+  PLATFORM: "tradeCom.co.uk"
+  STARTER_PACKAGE_PROBABILITY: "0.8"
+  LIGHT_PACKAGE_PROBABILITY: "0.2"
+  PRO_PACKAGE_PROBABILITY: "0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-3
+data:
+  PLATFORM: "CryptoTrading.com"
+  FILTER: '["Crypto"]'
+  MAXFEE: "0"
+  STARTER_PACKAGE_PROBABILITY: "0.5"
+  LIGHT_PACKAGE_PROBABILITY: "0.4"
+  PRO_PACKAGE_PROBABILITY: "0.1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-4
+data:
+  PLATFORM: "CheapTrading.mi"
+  MAXFEE: "0"
+  STARTER_PACKAGE_PROBABILITY: "1"
+  LIGHT_PACKAGE_PROBABILITY: "0"
+  PRO_PACKAGE_PROBABILITY: "0"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregatorservice-5
+data:
+  PLATFORM: "Stratton-oakmount.com"
+  FILTER: '["Shares"]'
+  STARTER_PACKAGE_PROBABILITY: "0"
+  LIGHT_PACKAGE_PROBABILITY: "0.1"
+  PRO_PACKAGE_PROBABILITY: "0.9"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregatorservice
+spec:
+  selector:
+    matchLabels:
+      app: aggregatorservice
+  template:
+    metadata:
+      labels:
+        app: aggregatorservice
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop        
+    spec:
+      containers:
+        - name: aggregatorservice-1
+          image: gcr.io/dynatrace-demoability/easytrade/aggregatorservice:44e1877
+          env:
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: aggregatorservice-common
+            - configMapRef:
+                name: aggregatorservice-1
+          resources: &default_res
+            requests:
+              cpu: 50m
+              memory: 100Mi
+        - name: aggregatorservice-2
+          image: gcr.io/dynatrace-demoability/easytrade/aggregatorservice:44e1877
+          env:
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace          
+          envFrom:
+            - configMapRef:
+                name: aggregatorservice-common
+            - configMapRef:
+                name: aggregatorservice-2
+          resources: *default_res
+        - name: aggregatorservice-3
+          image: gcr.io/dynatrace-demoability/easytrade/aggregatorservice:44e1877
+          env:
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace          
+          envFrom:
+            - configMapRef:
+                name: aggregatorservice-common
+            - configMapRef:
+                name: aggregatorservice-3
+          resources: *default_res
+        - name: aggregatorservice-4
+          image: gcr.io/dynatrace-demoability/easytrade/aggregatorservice:44e1877
+          env:
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace          
+          envFrom:
+            - configMapRef:
+                name: aggregatorservice-common
+            - configMapRef:
+                name: aggregatorservice-4
+          resources: *default_res
+        - name: aggregatorservice-5
+          image: gcr.io/dynatrace-demoability/easytrade/aggregatorservice:44e1877
+          env:
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace          
+          envFrom:
+            - configMapRef:
+                name: aggregatorservice-common
+            - configMapRef:
+                name: aggregatorservice-5
+          resources: *default_res

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accountservice
+  labels:
+    dt.owner: team-workshop
+spec:
+  selector:
+    matchLabels:
+      app: accountservice
+  template:
+    metadata:
+      labels:
+        app: accountservice
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop
+    spec:
+      containers:
+        - name: accountservice
+          image: gcr.io/dynatrace-demoability/easytrade/accountservice:44e1877
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DT_TAGS
+              value: "owner=team-workshop, owner=team-abc"
+            - name: MANAGER_HOSTANDPORT
+              value: "manager:80"
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 150m
+              memory: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: accountservice
+  labels:
+    dt.owner: team-workshop
+spec:
+  type: ClusterIP
+  selector:
+    app: accountservice
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

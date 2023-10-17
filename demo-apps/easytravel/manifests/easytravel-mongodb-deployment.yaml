@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: easytravel
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: easytravel-mongodb
+  name: easytravel-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     app: easytravel-mongodb
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: easytravel-mongodb
+        app: easytravel-mongodb
+      annotations:
+        support.contact: "demoability@dynatrace.com"
+        support.channel: "#team-demoability"
+    spec:
+      containers:
+      - image: dynatrace/easytravel-mongodb
+        imagePullPolicy: "Always"
+        name: easytravel-mongodb
+        ports:
+        - containerPort: 27017
+        - containerPort: 28017
+        resources: {}
+      restartPolicy: Always
+status: {}

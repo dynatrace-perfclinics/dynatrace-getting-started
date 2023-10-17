@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricingservice
+spec:
+  selector:
+    matchLabels:
+      app: pricingservice
+  template:
+    metadata:
+      labels:
+        app: pricingservice
+        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/part-of: easytrade
+        dt.owner: team-workshop
+    spec:
+      containers:
+        - name: pricingservice
+          image: gcr.io/dynatrace-demoability/easytrade/pricingservice:44e1877
+          ports:
+            - containerPort: 80
+          env:
+            - name: MANAGER_HOSTANDPORT
+              value: "manager:80"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_USER
+              value: "userxxx"
+            - name: RABBITMQ_PASSWORD
+              value: "passxxx"
+            - name: DT_RELEASE_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: DT_RELEASE_PRODUCT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/part-of']
+            - name: DT_RELEASE_STAGE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 100m
+              memory: 350Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricingservice
+  labels:
+    dt.owner: team-workshop
+spec:
+  type: ClusterIP
+  selector:
+    app: pricingservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: easytravel
+  labels:
+    io.kompose.service: easytravel-loadgen
+  name: easytravel-loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: easytravel-loadgen
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: easytravel-loadgen
+        app: easytravel-loadgen
+      annotations:
+        support.contact: "demoability@dynatrace.com"
+        support.channel: "#team-demoability"
+    spec:
+      containers:
+      - env:
+        - name: ET_FRONTEND_URL
+          value: http://easytravel-frontend:8080
+        - name: ET_BACKEND_URL
+          value: http://easytravel-backend:8080
+        - name: ET_PROBLEMS
+          value: "BadCacheSynchronization,CPULoad,DatabaseCleanup,DatabaseSlowdown,FetchSizeTooSmall,JourneySearchError404,JourneySearchError500,LoginProblems,MobileErrors,TravellersOptionBox"
+        - name: ET_VISIT_NUMBER
+          value: "2"
+        image: dynatrace/easytravel-loadgen
+        imagePullPolicy: "Always"
+        name: easytravel-loadgen
+        ports:
+        - containerPort: 8080

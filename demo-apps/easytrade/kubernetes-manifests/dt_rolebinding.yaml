@@ -1,0 +1,24 @@
+# dynatrace-oneagent-metadata-viewer.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: easytrade
+  name: dynatrace-oneagent-metadata-viewer
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: dynatrace-oneagent-metadata-viewer-binding
+  namespace: easytrade
+subjects:
+- kind: ServiceAccount
+  name: default
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: dynatrace-oneagent-metadata-viewer
+  apiGroup: ""

@@ -1,0 +1,206 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-file: "5"
+    max-size: "10m"
+
+x-service: &default-service
+  restart: always
+  logging: *default-logging
+
+x-aggregator-service: &default-aggregator-service
+  <<: *default-service
+  image: ${REGISTRY}/aggregatorservice:${TAG}
+  depends_on:
+    - offerservice
+
+x-aggregator-service-env: &default-aggregator-service-env
+  NODE_ENV: production
+  OFFER_SERVICE: offerservice:8080
+
+services:
+  db:
+    <<: *default-service
+    image: ${REGISTRY}/db:${TAG}
+    environment:
+      SA_PASSWORD: yourStrong(!)Password
+
+  contentcreator:
+    <<: *default-service
+    image: ${REGISTRY}/contentcreator:${TAG}
+    depends_on:
+      - db
+    environment:
+      MSSQL_CONNECTIONSTRING: jdbc:sqlserver://db:1433;database=TradeManagement;user=sa;password=yourStrong(!)Password;encrypt=false;trustServerCertificate=false;loginTimeout=30;
+
+  manager:
+    <<: *default-service
+    image: ${REGISTRY}/manager:${TAG}
+    depends_on:
+      - db
+    environment:
+      MSSQL_CONNECTIONSTRING: Data Source=db;Initial Catalog=TradeManagement;Persist Security Info=True;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=true
+
+  pricingservice:
+    <<: *default-service
+    image: ${REGISTRY}/pricingservice:${TAG}
+    depends_on:
+      - manager
+      - rabbitmq
+    environment:
+      MANAGER_HOSTANDPORT: manager:80
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: userxxx
+      RABBITMQ_PASSWORD: passxxx
+
+  brokerservice:
+    <<: *default-service
+    image: ${REGISTRY}/brokerservice:${TAG}
+    depends_on:
+      - manager
+      - accountservice
+      - pricingservice
+    environment:
+      MANAGER_HOSTANDPORT: manager:80
+      ACCOUNTSERVICE_HOSTANDPORT: accountservice:8080
+      PRICINGSERVICE_HOSTANDPORT: pricingservice:80
+
+  rabbitmq:
+    <<: *default-service
+    image: ${REGISTRY}/rabbitmq:${TAG}
+
+  calculationservice:
+    <<: *default-service
+    image: ${REGISTRY}/calculationservice:${TAG}
+    depends_on:
+      - rabbitmq
+
+  frontend:
+    <<: *default-service
+    image: ${REGISTRY}/frontend:${TAG}
+    depends_on:
+      - brokerservice
+      - loginservice
+      - pricingservice
+      - accountservice
+
+  loginservice:
+    <<: *default-service
+    image: ${REGISTRY}/loginservice:${TAG}
+    environment:
+      MSSQL_CONNECTIONSTRING: Data Source=db;Initial Catalog=TradeManagement;Persist Security Info=True;User ID=sa;Password=yourStrong(!)Password;TrustServerCertificate=true
+    depends_on:
+      - db
+
+  frontendreverseproxy:
+    <<: *default-service
+    image: ${REGISTRY}/frontendreverseproxy:${TAG}
+    depends_on:
+      - brokerservice
+      - frontend
+      - loginservice
+      - pricingservice
+      - pluginservice
+      - offerservice
+      - accountservice
+      - engine
+    ports:
+      - 80:80
+
+  headlessloadgen:
+    <<: *default-service
+    image: gcr.io/dynatrace-demoability/headlessloadgen:${LOADGEN_TAG}
+    depends_on:
+      - frontendreverseproxy
+    environment:
+      EASY_TRADE_DOMAIN: frontendreverseproxy
+      EASY_TRADE_PORT: 80
+
+  offerservice:
+    <<: *default-service
+    image: ${REGISTRY}/offerservice:${TAG}
+    depends_on:
+      - loginservice
+      - manager
+    environment:
+      LOGIN_SERVICE_PORT: 80
+      LOGIN_SERVICE_BASE_URL: loginservice
+      MANAGER_BASE_URL: manager
+      MANAGER_PORT: 80
+
+  pluginservice:
+    <<: *default-service
+    image: ${REGISTRY}/pluginservice:${TAG}
+    depends_on:
+      - offerservice
+      - manager
+    environment:
+      OFFER_SERVICE__PORT: 8080
+      OFFER_SERVICE__DOMAIN: offerservice
+      MANAGER__PORT: 80
+      MANAGER__DOMAIN: manager
+
+  accountservice:
+    <<: *default-service
+    image: ${REGISTRY}/accountservice:${TAG}
+    depends_on:
+      - manager
+    environment:
+      MANAGER_HOSTANDPORT: manager:80
+
+  engine:
+    <<: *default-service
+    image: ${REGISTRY}/engine:${TAG}
+    depends_on:
+      - brokerservice
+    environment:
+      BROKER_HOSTANDPORT: brokerservice:80
+
+  aggregatorservice_1:
+    <<: *default-aggregator-service
+    environment:
+      <<: *default-aggregator-service-env
+      PLATFORM: dynatestsieger.at
+      STARTER_PACKAGE_PROBABILITY: 0.6
+      LIGHT_PACKAGE_PROBABILITY: 0.3
+      PRO_PACKAGE_PROBABILITY: 0.1
+
+  aggregatorservice_2:
+    <<: *default-aggregator-service
+    environment:
+      <<: *default-aggregator-service-env
+      PLATFORM: tradeCom.co.uk
+      STARTER_PACKAGE_PROBABILITY: 0.8
+      LIGHT_PACKAGE_PROBABILITY: 0.2
+      PRO_PACKAGE_PROBABILITY: 0
+
+  aggregatorservice_3:
+    <<: *default-aggregator-service
+    environment:
+      <<: *default-aggregator-service-env
+      PLATFORM: CryptoTrading.com
+      FILTER: '["Crypto"]'
+      MAXFEE: 0
+      STARTER_PACKAGE_PROBABILITY: 0.5
+      LIGHT_PACKAGE_PROBABILITY: 0.4
+      PRO_PACKAGE_PROBABILITY: 0.1
+
+  aggregatorservice_4:
+    <<: *default-aggregator-service
+    environment:
+      <<: *default-aggregator-service-env
+      PLATFORM: CheapTrading.mi
+      MAXFEE: 0
+      STARTER_PACKAGE_PROBABILITY: 1
+      LIGHT_PACKAGE_PROBABILITY: 0
+      PRO_PACKAGE_PROBABILITY: 0
+
+  aggregatorservice_5:
+    <<: *default-aggregator-service
+    environment:
+      <<: *default-aggregator-service-env
+      PLATFORM: Stratton-oakmount.com
+      FILTER: '["Shares"]'
+      STARTER_PACKAGE_PROBABILITY: 0
+      LIGHT_PACKAGE_PROBABILITY: 0.1
+      PRO_PACKAGE_PROBABILITY: 0.9

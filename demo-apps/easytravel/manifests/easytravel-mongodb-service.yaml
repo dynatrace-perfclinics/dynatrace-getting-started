@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: easytravel
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.13.0 (84fa826)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: easytravel-mongodb
+  name: easytravel-mongodb
+spec:
+  ports:
+  - name: "27017"
+    port: 27017
+    targetPort: 27017
+  - name: "28017"
+    port: 28017
+    targetPort: 28017
+  selector:
+    io.kompose.service: easytravel-mongodb
+status:
+  loadBalancer: {}

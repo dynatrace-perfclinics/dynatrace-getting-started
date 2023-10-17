@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: easytravel
+  labels:
+    io.kompose.service: easytravel-headless-loadgen
+  name: easytravel-headless-loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: easytravel-headless-loadgen
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: easytravel-headless-loadgen
+        app: easytravel-headless-loadgen
+      annotations:
+        support.contact: "demoability@dynatrace.com"
+        support.channel: "#team-demoability"
+    spec:
+      containers:
+      - env:
+        - name: ET_FRONTEND_URL
+          value: http://easytravel-frontend:80
+        - name: ET_VISIT_NUMBER
+          value: "2"
+        - name: "MAX_CHROME_DRIVERS"
+          value: "4"
+        - name: "SENARIO_NAME"
+          value: "Headless Angular Scenario"
+        image: dynatrace/easytravel-headless-loadgen
+        imagePullPolicy: "Always"
+        name: easytravel-headless-loadgen
