@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: simplenode
+  namespace: simplenode-dev
+spec:
+  rules:
+    - host: simplenode-dev.agrabner-hotday.keptn.sh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  simplenode
+                port:
+                  number: 80

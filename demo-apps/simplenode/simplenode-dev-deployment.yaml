@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simplenode
+  namespace: simplenode-dev
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: simplenode
+  template:
+    metadata:
+      labels:
+        app: simplenode
+        app.kubernetes.io/name: simplenodeservice
+        app.kubernetes.io/version: 1.0.2
+      annotations:
+        # keptn.sh/app: simpleapp
+        # keptn.sh/workload: simplenode
+        # keptn.sh/version: 1.0.2
+        # keptn.sh/pre-deployment-evaluations: evaluate-dependencies
+        # keptn.sh/pre-deployment-tasks: notify
+        # keptn.sh/post-deployment-evaluations: evaluate-deployment
+        # keptn.sh/post-deployment-tasks: notify
+    spec:
+      containers:
+      - name: simplenode
+        image: "grabnerandi/simplenodeservice:1.0.2"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          protocol: TCP
+          containerPort: 8080
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.name"
+        - name: DEPLOYMENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['deployment']"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.name"
+        - name: DEPLOYMENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['deployment']"
+        - name: DT_RELEASE_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['app.kubernetes.io/version']"
+        - name: DT_RELEASE_PRODUCT
+          value: "simplenodeproject"
+        - name: DT_RELEASE_STAGE
+          value: "stage"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 15
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simplenode
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: simplenode
