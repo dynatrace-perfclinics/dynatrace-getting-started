@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: accountservice
-        app.kubernetes.io/version: 44e1877
+        app.kubernetes.io/version: 44e1878
         app.kubernetes.io/part-of: easytrade
         dt.owner: team-workshop
     spec:
