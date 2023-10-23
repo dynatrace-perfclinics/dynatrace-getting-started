@@ -17,7 +17,7 @@ spec:
       labels:
         app: simplenode
         app.kubernetes.io/name: simplenodeservice
-        app.kubernetes.io/version: 1.0.2
+        app.kubernetes.io/version: 2.0.2
       annotations:
         # keptn.sh/app: simpleapp
         # keptn.sh/workload: simplenode
@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: simplenode
-        image: "grabnerandi/simplenodeservice:1.0.2"
+        image: "grabnerandi/simplenodeservice:2.0.2"
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
