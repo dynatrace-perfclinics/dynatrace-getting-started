@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: simplenode
   namespace: simplenode-dev
+  labels:
+    dt.owner: team-workshop-simplenode
 spec:
   replicas: 1
   strategy:
@@ -17,6 +19,7 @@ spec:
       labels:
         app: simplenode
         app.kubernetes.io/name: simplenodeservice
+        app.kubernetes.io/part-of: simplenode-product
         app.kubernetes.io/version: 3.0.2
         dt.owner: team-workshop-simplenode
 
@@ -64,9 +67,13 @@ spec:
             fieldRef:
               fieldPath: "metadata.labels['app.kubernetes.io/version']"
         - name: DT_RELEASE_PRODUCT
-          value: "simplenodeproject"
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.labels['app.kubernetes.io/part-of']"
         - name: DT_RELEASE_STAGE
-          value: "stage"
+          valueFrom:
+            fieldRef:
+              fieldPath: "metadata.namespace"
         livenessProbe:
           httpGet:
             path: /
