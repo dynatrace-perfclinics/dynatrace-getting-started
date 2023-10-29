@@ -18,6 +18,13 @@ spec:
         app: simplenode
         app.kubernetes.io/name: simplenodeservice
         app.kubernetes.io/version: 1.0.2
+        dt.owner: team-workshop-simplenode
+
+        # Following are suggestions for bringing more observability as code to your Deployment CRDs
+        dt.notify: true
+        dt.synthetics: true
+        dt.slo.availability.target: "95"
+        dt.slo.availability.warning: "98"
       annotations:
         # keptn.sh/app: simpleapp
         # keptn.sh/workload: simplenode
