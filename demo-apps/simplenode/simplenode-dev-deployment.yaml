@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: simplenode
-        image: "grabnerandi/simplenodeservice:1.0.2"
+        image: "grabnerandi/simplenodeservice:2.0.2"
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
