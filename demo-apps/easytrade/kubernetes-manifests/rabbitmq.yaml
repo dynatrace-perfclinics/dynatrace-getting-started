@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rabbitmq
+  labels:
+    dt.owner: team-workshop  
 spec:
   selector:
     matchLabels:

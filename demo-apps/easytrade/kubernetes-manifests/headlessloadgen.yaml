@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: headlessloadgen
+    dt.owner: team-workshop
   name: headlessloadgen
 spec:
   selector:

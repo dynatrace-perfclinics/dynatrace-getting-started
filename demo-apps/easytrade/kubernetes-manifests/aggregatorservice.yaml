@@ -64,6 +64,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: aggregatorservice
+  labels:
+    dt.owner: team-workshop  
 spec:
   selector:
     matchLabels:
