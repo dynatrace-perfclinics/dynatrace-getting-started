@@ -21,8 +21,8 @@ spec:
         dt.owner: team-workshop-simplenode
 
         # Following are suggestions for bringing more observability as code to your Deployment CRDs
-        dt.notify: true
-        dt.synthetics: true
+        dt.notify: "true"
+        dt.synthetics: "true"
         dt.slo.availability.target: "95"
         dt.slo.availability.warning: "98"
       annotations:
