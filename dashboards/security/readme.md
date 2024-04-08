@@ -9,4 +9,6 @@ For more information about how security reporting, refer to [Security data analy
 ## Sample Dashboard
 
 **Threat Exposure Overview** - This report template provides a high-level overview of your scoped environment's exposure to the selected vulnerabilities.
+[Download](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/dashboards/security/Threat%20Exposure%20Overview.json) this dashboard and import it in your own Dynatrace Environment
+
 ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/dashboard_security_threat_exposure_overview.png)
