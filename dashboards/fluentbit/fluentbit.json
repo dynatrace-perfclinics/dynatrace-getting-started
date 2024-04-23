@@ -1,0 +1,1000 @@
+{
+    "version": 13,
+    "variables": [],
+    "tiles": {
+        "0": {
+            "type": "data",
+            "title": "Number of bytes /min per input",
+            "query": "timeseries total=avg(fluentbit_input_bytes_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "1": {
+            "type": "data",
+            "title": "Number of records per min per input",
+            "query": "timeseries total=avg(fluentbit_input_records_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "2": {
+            "type": "data",
+            "title": "Number of files opened per min per input",
+            "query": "timeseries total=avg(fluentbit_input_files_opened_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "3": {
+            "type": "data",
+            "title": "Number of bytes filter  per min per filter",
+            "query": "timeseries total=avg(fluentbit_filter_bytes_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "4": {
+            "type": "data",
+            "title": "Number of records filter  per min per filter",
+            "query": "timeseries total=avg(fluentbit_filter_records_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "5": {
+            "type": "data",
+            "title": "Number of records droped  per min per filter",
+            "query": "timeseries total=avg(fluentbit_filter_drop_records_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "6": {
+            "type": "data",
+            "title": "Number of records droped  in per min per output ",
+            "query": "timeseries total=avg(fluentbit_output_dropped_records_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "7": {
+            "type": "data",
+            "title": "Number of failed retries in per min per output ",
+            "query": "timeseries total=avg(fluentbit_output_retries_failed_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "8": {
+            "type": "data",
+            "title": "Number of record per min per output ",
+            "query": "timeseries total=avg(fluentbit_output_proc_records_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "9": {
+            "type": "data",
+            "title": "Number of bytes record per min per output ",
+            "query": "timeseries total=avg(fluentbit_output_proc_bytes_total), by: { name}\n| fieldsAdd totalpers=total[]/todouble(interval/1m)\n| fieldsRemove total",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "name",
+                        "categoryAxisLabel": "name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "totalpers"
+                        ],
+                        "leftAxisDimensions": [
+                            "name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "10": {
+            "type": "markdown",
+            "title": "",
+            "content": "**input**"
+        },
+        "11": {
+            "type": "markdown",
+            "title": "",
+            "content": "**filter**"
+        },
+        "12": {
+            "type": "markdown",
+            "title": "",
+            "content": "**output**"
+        },
+        "13": {
+            "type": "data",
+            "title": "",
+            "query": "fetch logs\n| filter k8s.namespace.name==\"fluentbit\"\n| fields timestamp, content\n| sort timestamp\n| filter content != \" \"",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "timestamp",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "14": {
+            "type": "markdown",
+            "title": "",
+            "content": "**logs**"
+        },
+        "15": {
+            "type": "data",
+            "title": "CPu usage per  millicores",
+            "query": "timeseries cpu_usages = avg(dt.kubernetes.container.cpu_usage), by:{ k8s.workload.name, k8s.container.name}\n| fieldsAdd cpu_usage = cpu_usages[] / 1000\n|filter k8s.workload.name==\"fluent-bit\"",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "k8s.workload.name",
+                        "valueAxis": "interval",
+                        "categoryAxisLabel": "k8s.workload.name",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "cpu_usages",
+                            "cpu_usage"
+                        ],
+                        "leftAxisDimensions": [
+                            "k8s.workload.name",
+                            "k8s.container.name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "k8s.workload.name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "16": {
+            "type": "data",
+            "title": "Memory usage ",
+            "query": "timeseries usage=avg(dt.kubernetes.container.memory_working_set), by:{k8s.workload.name,k8s.pod.name}\n| append[timeseries request=sum(dt.kubernetes.container.requests_memory), by:{dt.entity.cloud_application_namespace}, filter: dt.kubernetes.container.type == \"app\"]\n| append[timeseries liumits=sum(dt.kubernetes.container.limits_memory), by:{dt.entity.cloud_application_namespace}, filter:  dt.kubernetes.container.type == \"app\"]\n| filter k8s.workload.name==\"fluent-bit\"",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "k8s.workload.name",
+                        "categoryAxisLabel": "k8s.workload.name",
+                        "valueAxis": "interval",
+                        "valueAxisLabel": "interval"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "usage"
+                        ],
+                        "leftAxisDimensions": [
+                            "k8s.workload.name",
+                            "k8s.pod.name"
+                        ],
+                        "fields": [],
+                        "values": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "k8s.workload.name",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "17": {
+            "type": "markdown",
+            "title": "",
+            "content": "**ressource usage**"
+        },
+        "18": {
+            "type": "data",
+            "title": "Number of logs ingested /min",
+            "query": "fetch logs\n| summarize count(), by:{bin(timestamp,60s)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "fieldMapping": {
+                        "timestamp": "bin(timestamp, 60s)",
+                        "leftAxisValues": [
+                            "count()"
+                        ],
+                        "rightAxisValues": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "recordField": "bin(timestamp, 60s)"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "columnWidths": {},
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ]
+                }
+            },
+            "visualization": "areaChart"
+        },
+        "19": {
+            "type": "data",
+            "title": "Number of spans ingested /min",
+            "query": "fetch spans\n| filter k8s.namespace.name !=\"hipster-shop\"\n| summarize count(), by:{bin( start_time,60s)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {},
+                    "fieldMapping": {
+                        "timestamp": "bin(start_time, 60s)",
+                        "leftAxisValues": [
+                            "count()"
+                        ],
+                        "leftAxisDimensions": []
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "recordField": "bin(timestamp, 60s)"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "columnWidths": {},
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ]
+                }
+            },
+            "visualization": "areaChart"
+        },
+        "20": {
+            "type": "markdown",
+            "title": "",
+            "content": "**Data ingested**"
+        }
+    },
+    "layouts": {
+        "0": {
+            "x": 0,
+            "y": 1,
+            "w": 8,
+            "h": 6
+        },
+        "1": {
+            "x": 8,
+            "y": 1,
+            "w": 8,
+            "h": 6
+        },
+        "2": {
+            "x": 16,
+            "y": 1,
+            "w": 8,
+            "h": 6
+        },
+        "3": {
+            "x": 0,
+            "y": 8,
+            "w": 8,
+            "h": 6
+        },
+        "4": {
+            "x": 8,
+            "y": 8,
+            "w": 8,
+            "h": 6
+        },
+        "5": {
+            "x": 16,
+            "y": 8,
+            "w": 8,
+            "h": 6
+        },
+        "6": {
+            "x": 16,
+            "y": 15,
+            "w": 8,
+            "h": 6
+        },
+        "7": {
+            "x": 0,
+            "y": 21,
+            "w": 8,
+            "h": 6
+        },
+        "8": {
+            "x": 0,
+            "y": 15,
+            "w": 8,
+            "h": 6
+        },
+        "9": {
+            "x": 8,
+            "y": 15,
+            "w": 8,
+            "h": 6
+        },
+        "10": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 1
+        },
+        "11": {
+            "x": 0,
+            "y": 7,
+            "w": 24,
+            "h": 1
+        },
+        "12": {
+            "x": 0,
+            "y": 14,
+            "w": 24,
+            "h": 1
+        },
+        "13": {
+            "x": 0,
+            "y": 28,
+            "w": 24,
+            "h": 6
+        },
+        "14": {
+            "x": 0,
+            "y": 27,
+            "w": 24,
+            "h": 1
+        },
+        "15": {
+            "x": 0,
+            "y": 35,
+            "w": 12,
+            "h": 6
+        },
+        "16": {
+            "x": 12,
+            "y": 35,
+            "w": 12,
+            "h": 6
+        },
+        "17": {
+            "x": 0,
+            "y": 34,
+            "w": 24,
+            "h": 1
+        },
+        "18": {
+            "x": 0,
+            "y": 42,
+            "w": 8,
+            "h": 6
+        },
+        "19": {
+            "x": 8,
+            "y": 42,
+            "w": 8,
+            "h": 6
+        },
+        "20": {
+            "x": 0,
+            "y": 41,
+            "w": 24,
+            "h": 1
+        }
+    },
+    "refreshRate": 60000
+}
