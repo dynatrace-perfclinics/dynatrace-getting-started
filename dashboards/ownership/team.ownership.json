@@ -1,0 +1,400 @@
+{
+    "version": 11,
+    "variables": [
+        {
+            "key": "team",
+            "type": "code",
+            "input": "import { settingsObjectsClient } from \"@dynatrace-sdk/client-classic-environment-v2\";\n\n/*\n* This will run JavaScript in the DYNATRACE\n* serverless environment.\n* To generate variable options return string array.\n*/\nexport default async function () {\n    const data = await settingsObjectsClient.getEffectiveSettingsValues({\n    schemaIds: \"builtin:ownership.teams\",\n    scope: \"environment\",\n    fields: \"objectId,value\",\n    pageSize: 50,\n  });\n\n  var teamNames = new Array(data.totalCount+1)\n  teamNames[0] = \"No Team\"\n  for (var teamIx=0;teamIx<data.totalCount;teamIx++) {\n    teamNames[teamIx+1]=data.items[teamIx].value.name;\n  }\n\n  return teamNames;\n}",
+            "multiple": false
+        },
+        {
+            "key": "entitytype",
+            "type": "csv",
+            "input": "cloud_application, service, http_check, process_group,process_group_instance",
+            "multiple": false
+        }
+    ],
+    "tiles": {
+        "1": {
+            "type": "markdown",
+            "title": "",
+            "content": "# Get an overview of entities with and without ownership\nThis dashboard allows you to get an overview of entities that are assigned to a team or that are not yet assigned to any team.\nSelect your team (or \"No Team) and the entity type you are interested:\n- **No Team**: Will show all entities that currently do not have a dt.owner defined\n- **TEAM**: Will show you all entities this team has ownership for"
+        },
+        "3": {
+            "type": "code",
+            "title": "",
+            "input": "/*\n* This function will run in the DYNATRACE JavaScript runtime.\n* For information visit https://dt-url.net/functions-help\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\n// async function getAllEntities() {\n//   const timeout = 60;\n//   const query = 'fetch dt.entity.' + $entitytype + ' | fieldsAdd hasOwnerTags=(isNotNull(tags) and indexOf(toString(tags),\"owner\")>=0),tags' \n  \n//   const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n//   return response.result.records;\n// }\n\nasync function getAllEntitiesForTeam(team) {\n  const timeout = 60;\n  const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNotNull(tags) and indexOf(toString(tags),\"owner:' + team + '\")>=0) | fieldsAdd tags' \n  console.log(query)\n  \n  const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n  if ((response.result.records == \"\") && ($entitytype==\"cloud_application\")) {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter cloudApplicationLabels[dt.owner]==\"'+team+'\" | fieldsRemove cloudApplicationLabels'\n    console.log(query)\n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    return response.result.records;\n  }\n\n  return response.result.records;\n}\n\n\nasync function getAllEntitiesWitoutTeam(team) {\n  const timeout = 60;\n  if ($entitytype == \"cloud_application\" ) {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter isNull(cloudApplicationLabels[dt.owner]) | fieldsRemove cloudApplicationLabels'\n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    return response.result.records;\n  } else {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNull(tags) or indexOf(toString(tags),\"owner:\")==1)' \n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    return response.result.records;\n  }\n  //const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n  //return response.result.records;\n}\n\n/**\n * entities: array of entities with id and array of tags\n * team: name of team that we find the match for\n */\n// async function getEntitiesOwnedByTeam(entities,team) {\n\n//   console.log(\"Searching for entities owned by: \" + team)\n  \n//   var ownedEntities = new Array();\n  \n//   // iterate through all entities\n//   for (var entityIx=0;entityIx<entities.length;entityIx++) {\n//     // iterate through all tags and see if we find a matching team\n//     var entity=entities[entityIx]\n//     for (var tagIx=0;tagIx<entity.tags.length;tagIx++) {\n//       var tagToCheck = entity.tags[tagIx]\n//       console.log(\"Checking tag: \" + tagToCheck)\n//       if ((tagToCheck.indexOf(\"dt.owner\") == 0) && (tagToCheck.indexOf(team) > 0)) {\n//         console.log(\"Found tag: \" + tagToCheck)\n//         ownedEntities.push(entity)\n//       }\n//     }\n//   }\n\n//   return ownedEntities;\n// }\n\nexport default async function () { \n  if ($team == \"No Team\" || $team == null) {\n    console.log(\"No Team: \" + $team)\n    return await getAllEntitiesWitoutTeam()\n  } else {\n    console.log(\"Team: \" + $team)\n    return await getAllEntitiesForTeam($team)\n  }\n}",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "columnWidths": {
+                        "[\"entity.name\"]": 294,
+                        "[\"id\"]": 348,
+                        "[\"cloudApplicationLabels[dt.owner]\"]": 600
+                    }
+                }
+            }
+        },
+        "8": {
+            "type": "code",
+            "title": "Number of entities",
+            "input": "/*\n* This function will run in the DYNATRACE JavaScript runtime.\n* For information visit https://dt-url.net/functions-help\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\n\n// async function getAllEntities() {\n//   const timeout = 60;\n//   const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fieldsAdd hasOwnerTags=(isNotNull(tags) and indexOf(toString(tags),\"owner\")>=0),tags' \n  \n//   const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n//   return response.result.records;\n// }\n\nasync function getAllEntitiesForTeam(team) {\n  const timeout = 60;\n  const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNotNull(tags) and indexOf(toString(tags),\"owner:' + team + '\")>=0) | fieldsAdd tags | summarize count() ' \n  console.log(query)\n  \n  const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n  console.log(response)\n  if ($entitytype == \"cloud_application\") {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter cloudApplicationLabels[dt.owner]==\"'+team+'\" | fieldsRemove cloudApplicationLabels | summarize count() '\n    console.log(query)\n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    return response.result.records;\n  }\n  console.log(response.result.records)\n  return response.result.records;\n}\n\n\nasync function getAllEntitiesWitoutTeam(team) {\n  const timeout = 60;\n  if ($entitytype == \"cloud_application\" ) {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter isNull(cloudApplicationLabels[dt.owner]) | fieldsRemove cloudApplicationLabels | summarize count() '\n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    console.log(query)\n    console.log(response)\n    return response.result.records;\n  } else {\n    const query = 'fetch dt.entity.' + $entitytype + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNull(tags) or indexOf(toString(tags),\"owner:\")==1) | summarize count() ' \n    const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    return response.result.records;\n  }\n  //const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n  //return response.result.records;\n}\n\n/**\n * entities: array of entities with id and array of tags\n * team: name of team that we find the match for\n */\n// async function getEntitiesOwnedByTeam(entities,team) {\n\n//   console.log(\"Searching for entities owned by: \" + team)\n  \n//   var ownedEntities = new Array();\n  \n//   // iterate through all entities\n//   for (var entityIx=0;entityIx<entities.length;entityIx++) {\n//     // iterate through all tags and see if we find a matching team\n//     var entity=entities[entityIx]\n//     for (var tagIx=0;tagIx<entity.tags.length;tagIx++) {\n//       var tagToCheck = entity.tags[tagIx]\n//       console.log(\"Checking tag: \" + tagToCheck)\n//       if ((tagToCheck.indexOf(\"dt.owner\") == 0) && (tagToCheck.indexOf(team) > 0)) {\n//         console.log(\"Found tag: \" + tagToCheck)\n//         ownedEntities.push(entity)\n//       }\n//     }\n//   }\n//   return ownedEntities;\n// }\n\nexport default async function () { \n  if ($team == \"No Team\" || $team == null) {\n    console.log(\"No Team: \" + $team)\n    return await getAllEntitiesWitoutTeam()\n  } else {\n    console.log(\"Team: \" + $team)\n    return await getAllEntitiesForTeam($team)\n  }\n}",
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "EyeIcon",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "9": {
+            "type": "markdown",
+            "title": "",
+            "content": "### Entities owned by selected team, separated by entity type ###"
+        },
+        "10": {
+            "type": "code",
+            "title": "",
+            "input": "/*\n* This function will run in the DYNATRACE JavaScript runtime.\n* For information visit https://dt-url.net/functions-help\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\nimport { settingsObjectsClient } from \"@dynatrace-sdk/client-classic-environment-v2\";\n\nexport default async function () {\n  console.log(\"Searching for entities owned by: \" + $team)\n  //console.log(\"Searching for teams owned by: \" + team)\n  //const data.schemaId=\"builtin:ownership.teams\"\n  const data = await settingsObjectsClient.getSettingsObjects({schemaIds: 'builtin:ownership.teams'});\n  //console.log(data.items.length)\n\n  //var teamInfo = new Array();\n  const contactInfo = {name:'NaN', id: 'NaN', slackChannel: 'NaN', email: 'NaN', msTeams: 'NaN',jira: 'NaN'}\n\n   for (var teamIx=0; teamIx<data.items.length;teamIx++) { \n     //console.log(data.items[teamIx].value.name)\n     var team=data.items[teamIx].value\n     if (team.identifier == $team) {\n       console.log(team)\n       //teamInfo.push(team)\n       contactInfo.name = team.name;\n       contactInfo.id = team.identifier;\n       for (var contactIx=0;contactIx<team.contactDetails.length;contactIx++) {\n         if(team.contactDetails[contactIx].integrationType == \"SLACK\") {\n           contactInfo.slackChannel = team.contactDetails[contactIx].slackChannel;\n         }\n         if(team.contactDetails[contactIx].integrationType == \"EMAIL\") {\n           contactInfo.email = team.contactDetails[contactIx].email;\n         }\n       }\n       //console.log(contactInfo)\n     }\n  }\n\n  return contactInfo;\n}\n",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "columnWidths": {
+                        "[\"name\"]": 111.90625,
+                        "[\"id\"]": 98.703125,
+                        "[\"slackChannel\"]": 133.3125,
+                        "[\"email\"]": 215.1875,
+                        "[\"msTeams\"]": 109.171875,
+                        "[\"jira\"]": 590.71875
+                    }
+                }
+            }
+        },
+        "11": {
+            "type": "markdown",
+            "title": "",
+            "content": "### Contact information of the selected team ###\n* **$team** *selected*"
+        },
+        "12": {
+            "type": "code",
+            "title": "Entities Without Ownership information",
+            "input": "/*\n* This function will run in the DYNATRACE JavaScript runtime.\n* For information visit https://dt-url.net/functions-help\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\n\nasync function getAllEntitiesWitoutTeam(team) {\n  \n  const timeout = 60;\n  const entGapType = {cloud_application: 'NaN', service: 'NaN', http_check: 'NaN', process_group: 'NaN', process_group_instance: 'NaN'}\n    // check ownership gaps based on k8s labels\n    const query = 'fetch dt.entity.cloud_application , from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter isNull(cloudApplicationLabels[dt.owner]) | fieldsRemove cloudApplicationLabels | summarize num=count() '\n\n    const responseCa = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    console.log(query)\n    console.log(responseCa.result.records)\n    var caGap = +responseCa.result.records[0].num\n    entGapType.cloud_application = caGap\n    console.log(caGap)\n\n    // check ownership gaps based on tags\n    var entTypes = new Array();\n    entTypes = [\"service\", \"http_check\", \"process_group\", \"process_group_instance\"];\n    \n    for (var entTypesIx=0;entTypesIx<entTypes.length;entTypesIx++){    \n      const query = 'fetch dt.entity.' + entTypes[entTypesIx] + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNull(tags) or indexOf(toString(tags),\"owner:\")==1) | summarize num=count() ' \n      console.log(query)\n      const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n      console.log(response.result.records)\n      // calc overall number of entities without ownership tags\n      if (entTypesIx==0){var tagGap = +response.result.records[0].num;} else { tagGap = tagGap+ +response.result.records[0].num;}\n\n      switch ( entTypes[entTypesIx] ) {\n        case \"service\": entGapType.service = +response.result.records[0].num; break;\n        case \"http_check\": entGapType.http_check = +response.result.records[0].num; break;\n        case \"process_group\": entGapType.process_group = +response.result.records[0].num; break;\n        case \"process_group_instance\": entGapType.process_group_instance = +response.result.records[0].num; break;\n        default: break;\n      }\n      console.log(tagGap);\n    }\n\n  // get number of all entities without ownership gap\n  var allEntGap = caGap+tagGap\n  console.log(allEntGap)\n  entGapType.sum=allEntGap;\n  console.log(entGapType)\n  return entGapType;\n}\n\n\nexport default async function () { \n\n    return await getAllEntitiesWitoutTeam()\n\n}",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "ResourceContentionIcon",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false,
+                    "recordField": "sum"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "sum"
+                        ]
+                    ],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "cloud_application",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814519348
+                    },
+                    {
+                        "identifier": "service",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814532993
+                    },
+                    {
+                        "identifier": "http_check",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814538601
+                    },
+                    {
+                        "identifier": "process_group",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814543353
+                    },
+                    {
+                        "identifier": "process_group_instance",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814547552
+                    },
+                    {
+                        "identifier": "sum",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814551593
+                    }
+                ]
+            }
+        },
+        "18": {
+            "type": "markdown",
+            "title": "",
+            "content": "### Ownership-Gaps within the environment ###\n"
+        },
+        "19": {
+            "type": "code",
+            "title": "Entities Without Ownership information",
+            "input": "/*\n* This function will run in the DYNATRACE JavaScript runtime.\n* For information visit https://dt-url.net/functions-help\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\n\n\nasync function getAllEntitiesWitoutTeam(team) {\n  \n  const timeout = 60;\n  const entGapType = {cloud_application: 'NaN', service: 'NaN', http_check: 'NaN', process_group: 'NaN', process_group_instance: 'NaN'}\n    // check ownership gaps based on k8s labels\n    const query = 'fetch dt.entity.cloud_application , from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | fields entity.name, id, cloudApplicationLabels[dt.owner], cloudApplicationLabels | filter isNull(cloudApplicationLabels[dt.owner]) | fieldsRemove cloudApplicationLabels | summarize num=count() '\n\n    const responseCa = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n    console.log(query)\n    console.log(responseCa.result.records)\n    var caGap = +responseCa.result.records[0].num\n    entGapType.cloud_application = caGap\n    console.log(caGap)\n\n    // check ownership gaps based on tags\n    var entTypes = new Array();\n    entTypes = [\"service\", \"http_check\", \"process_group\", \"process_group_instance\"];\n    \n    for (var entTypesIx=0;entTypesIx<entTypes.length;entTypesIx++){    \n      const query = 'fetch dt.entity.' + entTypes[entTypesIx] + ', from: \"' + $dt_timeframe_from + '\", to:\"' + $dt_timeframe_to + '\" | filter (isNull(tags) or indexOf(toString(tags),\"owner:\")==1) | summarize num=count() ' \n      console.log(query)\n      const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n      console.log(response.result.records)\n      // calc overall number of entities without ownership tags\n      if (entTypesIx==0){var tagGap = +response.result.records[0].num;} else { tagGap = tagGap+ +response.result.records[0].num;}\n\n      switch ( entTypes[entTypesIx] ) {\n        case \"service\": entGapType.service = +response.result.records[0].num; break;\n        case \"http_check\": entGapType.http_check = +response.result.records[0].num; break;\n        case \"process_group\": entGapType.process_group = +response.result.records[0].num; break;\n        case \"process_group_instance\": entGapType.process_group_instance = +response.result.records[0].num; break;\n        default: break;\n      }\n      console.log(tagGap);\n    }\n\n  // get number of all entities without ownership gap\n  var allEntGap = caGap+tagGap\n  console.log(allEntGap)\n  entGapType.sum=allEntGap;\n  console.log(entGapType)\n  return entGapType;\n}\n\n\nexport default async function () { \n\n    return await getAllEntitiesWitoutTeam()\n\n}",
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "EyeOffIcon",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false,
+                    "recordField": "sum"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "sum"
+                        ]
+                    ],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "cloud_application",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814519348
+                    },
+                    {
+                        "identifier": "service",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814532993
+                    },
+                    {
+                        "identifier": "http_check",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814538601
+                    },
+                    {
+                        "identifier": "process_group",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814543353
+                    },
+                    {
+                        "identifier": "process_group_instance",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814547552
+                    },
+                    {
+                        "identifier": "sum",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1704814551593
+                    }
+                ]
+            }
+        }
+    },
+    "layouts": {
+        "1": {
+            "x": 0,
+            "y": 0,
+            "w": 23,
+            "h": 3
+        },
+        "3": {
+            "x": 3,
+            "y": 4,
+            "w": 15,
+            "h": 4
+        },
+        "8": {
+            "x": 0,
+            "y": 4,
+            "w": 3,
+            "h": 4
+        },
+        "9": {
+            "x": 0,
+            "y": 3,
+            "w": 17,
+            "h": 1
+        },
+        "10": {
+            "x": 0,
+            "y": 10,
+            "w": 18,
+            "h": 2
+        },
+        "11": {
+            "x": 0,
+            "y": 8,
+            "w": 17,
+            "h": 2
+        },
+        "12": {
+            "x": 6,
+            "y": 13,
+            "w": 12,
+            "h": 3
+        },
+        "18": {
+            "x": 0,
+            "y": 12,
+            "w": 17,
+            "h": 1
+        },
+        "19": {
+            "x": 0,
+            "y": 13,
+            "w": 6,
+            "h": 3
+        }
+    }
+}
