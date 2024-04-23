@@ -1,0 +1,122 @@
+{
+    "version": 11,
+    "variables": [
+        {
+            "key": "EntityError",
+            "type": "csv",
+            "input": "Entity not found, Required property missing, Invalid reference, Invalid syntax, External URL: Not found, External URL: Unauthorized, External URL: Not allowed, Other",
+            "multiple": true
+        }
+    ],
+    "tiles": {
+        "0": {
+            "type": "data",
+            "title": "",
+            "query": "fetch logs\n| filter matchesValue(k8s.namespace.name, \"backstage\")\n| parse content, \"JSON{STRING:entity,STRING:level,STRING:location,STRING:message}(flat=true)\"\n| filter matchesValue(level, \"warn\") and isNotNull(entity)\n| fields \n`Timestamp` = timestamp, `Name` = substring(entity, from: indexOf(entity, \"/\") + 1),\n`Namespace` = substring(entity, from: indexOf(entity, \":\") + 1, to: indexOf(entity, \"/\")),\n`Type` = substring(entity, to: indexOf(entity, \":\")), `Location` = substring(location, from: indexOf(location, \":\") + 1),\n`Error` = if(\n  contains(message, \"NotFoundError\") and contains(message, \"PlaceholderProcessor\"), \"External URL: Not found\", \n  else: if(contains(message, \"NotFoundError\"), \"Entity not found\",\n  else: if(contains(message, \"Unauthorized\"), \"External URL: Unauthorized\",\n  else: if(contains(message, \"NotAllowedError\"), \"External URL: Not allowed\",\n  else: if(contains(message, \"required property\"), \"Required property missing\",\n  else: if(contains(message, \"Policy check failed\") or contains(message, \"TypeError\"), \"Invalid syntax\",\n  else: if(contains(message, \"Entity reference\"), \"Invalid reference\",\n  else: \"Other\"\n  ))))))\n),\n`Message` = message\n| filter in(Error, array($EntityError))\n| sort Timestamp desc\n// | filter Type == \"resource\"",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "autoscale": true
+                },
+                "table": {
+                    "enableLineWrap": true,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "Location"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"Timestamp\"]": 184,
+                        "[\"Name\"]": 191,
+                        "[\"Namespace\"]": 135,
+                        "[\"Type\"]": 95,
+                        "[\"Location\"]": 600,
+                        "[\"Error\"]": 112,
+                        "[\"Message\"]": 600
+                    }
+                }
+            },
+            "visualization": "table"
+        },
+        "1": {
+            "type": "data",
+            "title": "Errors",
+            "query": "fetch logs\n| filter matchesPhrase(k8s.namespace.name, \"backstage\")\n| parse content, \"JSON{STRING:entity,STRING:level,STRING:message}(flat=true)\"\n| filter (matchesValue(level, \"warn\") or matchesValue(level, \"error\")) and isNotNull(entity)\n| fields \nerror = if(\n  contains(message, \"NotFoundError\") and contains(message, \"PlaceholderProcessor\"), \"External URL: Not found\", \n  else: if(contains(message, \"NotFoundError\"), \"Entity not found\",\n  else: if(contains(message, \"Unauthorized\"), \"External URL: Unauthorized\",\n  else: if(contains(message, \"NotAllowedError\"), \"External URL: Not allowed\",\n  else: if(contains(message, \"required property\"), \"Required property missing\",\n  else: if(contains(message, \"Policy check failed\") or contains(message, \"TypeError\"), \"Invalid syntax\",\n  else: if(contains(message, \"Entity reference\"), \"Invalid reference\",\n  else: \"Other\"\n  ))))))\n),\n`Message` = message\n| filter in(error, array($EntityError))\n| summarize count(), alias: Error, by: { error }\n| sort Error desc",
+            "visualization": "categoricalBarChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "error",
+                        "categoryAxisLabel": "error",
+                        "valueAxis": "Error",
+                        "valueAxisLabel": "Error",
+                        "layout": "vertical",
+                        "scale": "absolute",
+                        "categoryAxisTickLayout": "horizontal"
+                    },
+                    "colorPalette": "categorical",
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "autoscale": true
+                },
+                "table": {
+                    "enableLineWrap": true,
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ]
+                }
+            }
+        },
+        "2": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Invalid Entities\n\nWe found warning logs for the below entities. You can filter for certain entity errors with the `EntityError` variable on top of this dashboard. Backstage always does delta loads and only logs a lot of information about all entities on its startup. If you are missing an entity, please increase your selected timeframe."
+        },
+        "3": {
+            "type": "markdown",
+            "title": "",
+            "content": "# Backstage Error Analysis\n\n🌐 [Backstage](https://example.com) \n\n📄 [GitHub connected to Backstage](https://github.com/None.git)"
+        }
+    },
+    "layouts": {
+        "0": {
+            "x": 8,
+            "y": 5,
+            "w": 16,
+            "h": 8
+        },
+        "1": {
+            "x": 0,
+            "y": 5,
+            "w": 8,
+            "h": 8
+        },
+        "2": {
+            "x": 0,
+            "y": 3,
+            "w": 24,
+            "h": 2
+        },
+        "3": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 3
+        }
+    }
+}
