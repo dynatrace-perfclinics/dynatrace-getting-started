@@ -1,0 +1,169 @@
+{
+  "id": "76e01b90-b6ba-44c6-a070-6948616ff328",
+  "title": "Lifecycle Events Workflow",
+  "description": "This workflow sends notifications back to ArgoCD Notifications Plugin when a new BizEvent is received from Argo",
+  "tasks": {
+    "get_global_vars": {
+      "name": "get_global_vars",
+      "description": "Build a custom task running js Code",
+      "action": "dynatrace.automations:run-javascript",
+      "input": {
+        "script": "export default async function ({ execution_id }) {\n\n  /**\n   * Setting Workflow-wide defaults that can be used by any task!\n   */\n  \n  return {\n    \"environmentUrl\" : globalThis.environmentUrl,\n    \"notificationEndpoint\" : \"https://CODESPACE_NAME_PLACEHOLDER-BACKSTAGE_PORT_NUMBER_PLACEHOLDER.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN_PLACEHOLDER/api/notifications\"\n  }  \n}"
+      },
+      "position": {
+        "x": 0,
+        "y": 1
+      },
+      "predecessors": []
+    },
+    "notify_backstage": {
+      "name": "notify_backstage",
+      "description": "Issue an HTTP request to any API",
+      "action": "dynatrace.automations:http-function",
+      "input": {
+        "url": "{{ result(\"get_global_vars\")[\"notificationEndpoint\"]}}",
+        "method": "POST",
+        "payload": "{\n  \"message\": \"Detected {{ event()[\"event.type\"] }} for {{event()[\"app_name\"] }}\",\n  \"channel\": \"{{event()[\"owner\"] }}\",\n  \"origin\": \"Dynatrace Workflow\"\n}"
+      },
+      "position": {
+        "x": 1,
+        "y": 2
+      },
+      "predecessors": [
+        "get_global_vars"
+      ],
+      "conditions": {
+        "states": {
+          "get_global_vars": "OK"
+        }
+      }
+    },
+    "send_dt_failed_events": {
+      "name": "send_dt_failed_events",
+      "description": "Build a custom task running js Code",
+      "action": "dynatrace.automations:run-javascript",
+      "input": {
+        "script": "// optional import of sdk modules\nimport { execution } from '@dynatrace-sdk/automation-utils';\n\nexport default async function ({ execution_id }) {\n  // your code goes here\n  // e.g. get the current execution\n  const ex = await execution(execution_id);\n  const eventContext = ex.event();\n\n    // construct a \"fake\" buildID -> should come from the CI System\n  const now = new Date();\n  let hour = now.getHours()\n  let minute = now.getMinutes();\n  let day = now.getDate();\n  let month = now.getMonth()\n  var buildId = month + \".\" + day + \".\" + hour + \".\" + minute\n\n  // Creates a BizEvent\n  var bizEventDeploymentReady = {\n    'git' : eventContext.git,\n    'owner' : eventContext.owner,\n    'argocd' : eventContext.argocd,\n    'app_name' : eventContext.app_name,\n    'stage' : eventContext.stage,\n    'proj_name' : eventContext.proj_name,\n    'syncFinishedTimestamp' : eventContext.timestamp,\n    'syncFinishedEventId' : eventContext[\"event.id\"],\n    'event.type': 'deployment.validated',\n    'status' : 'failed',\n    'event.provider': 'Lifecycle Events Workflow',\n    'timeframe.from': 'now-30m',\n    'timeframe.to': 'now',   \n    execution_context: {\n      buildId: buildId,\n      owner: eventContext.owner,\n      stage: eventContext.stage,\n      proj_name: eventContext.proj_name,\n      app_name: eventContext.app_name,\n      component_name: eventContext.app_name + \"-\" + eventContext.stage,      \n      id: crypto.randomUUID().toString()\n    } \n  }\n  const resultBizEvent = await fetch('/platform/classic/environment-api/v2/bizevents/ingest', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(bizEventDeploymentReady),\n  });\n  \n  return { triggeredBy: ex.trigger };\n}"
+      },
+      "position": {
+        "x": -2,
+        "y": 3
+      },
+      "predecessors": [
+        "run_javascript_validate_entity"
+      ],
+      "conditions": {
+        "states": {
+          "run_javascript_validate_entity": "NOK"
+        }
+      }
+    },
+    "send_dt_success_events": {
+      "name": "send_dt_success_events",
+      "description": "Sends a Dynatrace Deployment Event for this finished deployment",
+      "action": "dynatrace.automations:run-javascript",
+      "input": {
+        "script": "// optional import of sdk modules\nimport { execution } from '@dynatrace-sdk/automation-utils';\n\nexport default async function ({ execution_id }) {\n  const ex = await execution(execution_id);\n  const eventContext = ex.event();\n  const validateResult = await ex.result(\"run_javascript_validate_entity\")\n\n  // construct a \"fake\" buildID -> should come from the CI System\n  const now = new Date();\n  let hour = now.getHours()\n  let minute = now.getMinutes();\n  let day = now.getDate();\n  let month = now.getMonth()\n  var buildId = month + \".\" + day + \".\" + hour + \".\" + minute\n  \n  console.log(validateResult)\n  \n  // Creates a BizEvent\n  var bizEventDeploymentReady = {\n    'git' : eventContext.git,\n    'owner' : eventContext.owner,\n    'argocd' : eventContext.argocd,\n    'app_name' : eventContext.app_name,\n    'stage' : eventContext.stage,\n    'proj_name' : eventContext.proj_name,\n    'syncFinishedTimestamp' : eventContext.timestamp,\n    'syncFinishedEventId' : eventContext[\"event.id\"],\n    'entityId' : validateResult.id,\n    'event.type': 'deployment.validated',\n    'status' : 'succeeded',    \n    'event.provider': 'Lifecycle Events Workflow',\n    execution_context: {\n      buildId: buildId,\n      owner: eventContext.owner,\n      stage: eventContext.stage,\n      proj_name: eventContext.proj_name,\n      app_name: eventContext.app_name,\n      component_name: eventContext.app_name + \"-\" + eventContext.stage,\n      id: crypto.randomUUID().toString()\n    }     \n  }\n  console.log(bizEventDeploymentReady)  \n  const resultBizEvent = await fetch('/platform/classic/environment-api/v2/bizevents/ingest', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(bizEventDeploymentReady),\n  });\n\n  // Send a Deployment Event\n  var deploymentEventV2 = {\n    \"eventType\" : \"CUSTOM_DEPLOYMENT\",\n    \"title\": `Deployment Validated: ${eventContext.app_name}`,\n    \"entitySelector\": `type(PROCESS_GROUP_INSTANCE),tag([Kubernetes]app.kubernetes.io/part-of:${eventContext.app_name}),tag([Kubernetes]dynatrace-release-stage:${eventContext.stage})`,\n    \"properties\": {\n      \"source\" : \"Dynatrace Argo Sync Validator\",\n      'git' : eventContext.git,\n      'owner' : eventContext.owner,\n      'argocd' : eventContext.argocd,\n      'app_name' : eventContext.app_name,\n      'stage' : eventContext.stage,\n      'proj_name' : eventContext.proj_name,\n      'syncFinishedTimestamp' : eventContext.timestamp,\n      'syncFinishedEventId' : eventContext[\"event.id\"],\n      'buildId' : buildId\n    }\n  }\n  const resultEvent = await fetch('/platform/classic/environment-api/v2/events/ingest', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify(deploymentEventV2),\n  });\n  \n  return { triggeredBy: ex.trigger };\n}"
+      },
+      "position": {
+        "x": 0,
+        "y": 3
+      },
+      "predecessors": [
+        "run_javascript_validate_entity"
+      ],
+      "conditions": {
+        "states": {
+          "run_javascript_validate_entity": "OK"
+        }
+      }
+    },
+    "notify_backstage_dt_error": {
+      "name": "notify_backstage_dt_error",
+      "description": "Issue an HTTP request to any API",
+      "action": "dynatrace.automations:http-function",
+      "input": {
+        "url": "{{ result(\"get_global_vars\")[\"notificationEndpoint\"]}}",
+        "method": "POST",
+        "payload": "{\n  \"message\": \"Dynatrace Observability FAILED for for {{event()[\"app_name\"] }}\",\n  \"channel\": \"{{event()[\"owner\"] }}\",\n  \"origin\": \"Dynatrace Workflow\"\n}"
+      },
+      "position": {
+        "x": -1,
+        "y": 3
+      },
+      "predecessors": [
+        "run_javascript_validate_entity"
+      ],
+      "conditions": {
+        "states": {
+          "run_javascript_validate_entity": "NOK"
+        }
+      }
+    },
+    "notify_backstage_dt_ready": {
+      "name": "notify_backstage_dt_ready",
+      "description": "Issue an HTTP request to any API",
+      "action": "dynatrace.automations:http-function",
+      "input": {
+        "url": "{{ result(\"get_global_vars\")[\"notificationEndpoint\"]}}",
+        "method": "POST",
+        "payload": "{\n  \"message\": \"Dynatrace Observability Ready for service {{ result(\"run_javascript_validate_entity\")[\"entity.name\"] }}: {{ result(\"get_global_vars\")[\"environmentUrl\"]}}ui/apps/dynatrace.classic.technologies/#processgroupdetails;id={{ result(\"run_javascript_validate_entity\")[\"id\"] }} \",\n  \"channel\": \"{{event()[\"owner\"] }}\",\n  \"origin\": \"Dynatrace Workflow\"\n}"
+      },
+      "position": {
+        "x": 1,
+        "y": 3
+      },
+      "predecessors": [
+        "run_javascript_validate_entity"
+      ],
+      "conditions": {
+        "states": {
+          "run_javascript_validate_entity": "OK"
+        }
+      }
+    },
+    "run_javascript_validate_entity": {
+      "name": "run_javascript_validate_entity",
+      "description": "Build a custom task running js Code",
+      "action": "dynatrace.automations:run-javascript",
+      "input": {
+        "script": "/*\n* This function will fetch the EntityID of the Process Group that has the release, product, stage and ownership information\n*\n* Here is a reference sync.finished event and all the metadata\n{\n  \"timestamp\": \"2023-12-01T06:50:56.376000000Z\",\n  \"app_name\": \"simplenodeservice-team46\",  // thats the product\n  \"argocd\": \"https://argo.xxxxx\",\n  \"event.id\": \"1b81bbde-07ca-4dd2-8c03-482611c6fd7a\",\n  \"event.kind\": \"BIZ_EVENT\",\n  \"event.provider\": \"argocd\",\n  \"event.type\": \"sync.finished\",\n  \"git\": \"https://gitlab.xxxx\",\n  \"owner\": \"team46\", // thats owner\n  \"proj_name\": \"simplenodeservice\",\n  \"result\": \"success\",\n  \"stage\": \"preprod\"  // thats stage\n}\n*/\nimport { queryExecutionClient } from '@dynatrace-sdk/client-query';\nimport { execution } from '@dynatrace-sdk/automation-utils';\n\nexport default async function ({ execution_id }) {\n  const ex = await execution(execution_id);\n  const eventContext = ex.event();\n  const timeout = 10;\n\n  console.log(`Query entities for owner ${eventContext.owner}`)\n  const query = `fetch dt.entity.process_group\n    | parse toString(tags), \"\"\"LD '[Kubernetes]dt.owner:' LD:owner ( '\", ' | '\"]')\"\"\"\n    | parse toString(tags), \"\"\"LD '[Environment]DT_RELEASE_VERSION:' LD:version ( '\", ' | '\"]')\"\"\"\n    | parse toString(tags), \"\"\"LD '[Environment]DT_RELEASE_PRODUCT:' LD:product ( '\", ' | '\"]')\"\"\"\n    | parse toString(tags), \"\"\"LD '[Environment]DT_RELEASE_STAGE:' LD:stage ( '\", ' | '\"]')\"\"\"\n    | filter contains(product,\"${eventContext.app_name}\") \n    | filter contains(stage,\"${eventContext.stage}\")`;\n\n  console.log(query);\n\n  // Query entities that have matching team name\n  const response = await queryExecutionClient.queryExecute({ body: { query, requestTimeoutMilliseconds: timeout * 1000, fetchTimeoutSeconds: timeout  } });\n\n  // if no results returned throw error\n  if(response.result.records == null || response.result.records.length == 0) {\n    throw new Error(`No Entity returned yet with ${eventContext.owner}`)\n  }\n\n  // otherwise return result\n  return response.result.records[0]\n}"
+      },
+      "position": {
+        "x": 0,
+        "y": 2
+      },
+      "predecessors": [
+        "get_global_vars"
+      ],
+      "conditions": {
+        "states": {
+          "get_global_vars": "OK"
+        },
+        "custom": "{{ event()[\"event.type\"] == \"sync.finished\" }}",
+        "else": "STOP"
+      },
+      "retry": {
+        "count": 10,
+        "delay": 60,
+        "failedLoopIterationsOnly": true
+      }
+    }
+  },
+  "isPrivate": false,
+  "trigger": {
+    "eventTrigger": {
+      "filterQuery": "event.provider == \"argocd\"",
+      "isActive": true,
+      "uniqueExpression": null,
+      "triggerConfiguration": {
+        "type": "event",
+        "value": {
+          "query": "event.provider == \"argocd\"",
+          "eventType": "bizevents"
+        }
+      }
+    }
+  },
+  "schemaVersion": 3
+}
