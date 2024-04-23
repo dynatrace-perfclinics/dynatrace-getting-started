@@ -1,0 +1,739 @@
+{
+    "version": 11,
+    "variables": [
+        {
+            "key": "application",
+            "type": "query",
+            "input": "fetch events\n| filter contains(k8s.namespace.name, \"argocd\") and contains(dt.kubernetes.event.reason, \"OperationCompleted\")\n| summarize cnt=count(), by:{dt.kubernetes.event.involved_object.name}\n| fieldsRemove cnt",
+            "multiple": false
+        }
+    ],
+    "tiles": {
+        "0": {
+            "type": "markdown",
+            "title": "",
+            "content": "# Dynatrace Platform Engineering Observability Cockpit\nPick your team from the variable"
+        },
+        "1": {
+            "type": "data",
+            "title": "ArgoCD Sync Events per Argo Application",
+            "query": "fetch events\n| filter contains(k8s.namespace.name, \"argocd\") and contains(dt.kubernetes.event.reason, \"OperationCompleted\")\n| summarize count = count(), by:{dt.kubernetes.event.involved_object.name, bin(timestamp,1min)}",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "barChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "dt.davis.disable_merging_reason",
+                        "categoryAxisLabel": "dt.davis.disable_merging_reason",
+                        "valueAxis": "count",
+                        "valueAxisLabel": "count"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "bin(timestamp, 1m)",
+                        "fields": [
+                            "dt.kubernetes.event.involved_object.name"
+                        ],
+                        "values": [
+                            "count"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "2": {
+            "type": "data",
+            "title": "ArgoCD Sync Events for selected team",
+            "query": "fetch events\n| filter contains(k8s.namespace.name, \"argocd\") and contains(dt.kubernetes.event.reason, \"OperationCompleted\")\n| filter contains(dt.kubernetes.event.involved_object.name, $application)\n| summarize count()",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "dt.davis.disable_merging_reason",
+                        "categoryAxisLabel": "dt.davis.disable_merging_reason",
+                        "valueAxis": "count",
+                        "valueAxisLabel": "count"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "bin(timestamp, 1m)",
+                        "fields": [
+                            "dt.kubernetes.event.involved_object.name"
+                        ],
+                        "values": [
+                            "count"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Sync Events for selected application",
+                    "prefixIcon": "CheckCircleIcon",
+                    "autoscale": true,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "3": {
+            "type": "data",
+            "title": "ArgoCD Sync Events for selected team",
+            "query": "fetch events\n| filter contains(k8s.namespace.name, \"argocd\") and contains(dt.kubernetes.event.reason, \"OperationCompleted\")\n| filter contains(dt.kubernetes.event.involved_object.name, $application)\n| fields timestamp, event.name, k8s.namespace.name",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "dt.davis.disable_merging_reason",
+                        "categoryAxisLabel": "dt.davis.disable_merging_reason",
+                        "valueAxis": "count",
+                        "valueAxisLabel": "count"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "bin(timestamp, 1m)",
+                        "fields": [
+                            "dt.kubernetes.event.involved_object.name"
+                        ],
+                        "values": [
+                            "count"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Sync Events for selected application",
+                    "prefixIcon": "CheckCircleIcon",
+                    "autoscale": true,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 186,
+                        "[\"event.name\"]": 517,
+                        "[\"k8s.namespace.name\"]": 187
+                    }
+                }
+            }
+        },
+        "4": {
+            "type": "data",
+            "title": "",
+            "query": "// TODO\n// How do we show health of synthetics?\n// Platform synthetics for argo. backstage. workflows. gitlab.* exist\n// We need to show them here\nfetch dt.entity.synthetic_test",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "recordView",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "5": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter event.type == \"CUSTOM_INFO\"\n| filter source == \"ArgoCD\"\n| filter contains(event.name, \"app-deployed\")\n| summarize count()\n",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Applications Added",
+                    "prefixIcon": "WhatsNewIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        },
+        "6": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter event.type == \"CUSTOM_INFO\"\n| filter source == \"ArgoCD\"\n| filter contains(event.name, \"app-health-degraded\")\n| summarize count()\n",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Applications Degraded",
+                    "prefixIcon": "ChevronDownIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        },
+        "7": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Platform Adoption Overview"
+        },
+        "8": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter source == \"backstage\"\n| filter template == \"platform-feedback\"\n| filter type == \"feature\"\n| fieldsKeep timestamp\n| summarize count()",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "New Feature Ideas",
+                    "prefixIcon": "IdeaIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        },
+        "9": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter source == \"backstage\"\n| filter template == \"platform-feedback\"\n| fieldsKeep timestamp, event.name, type, user, `stay-informed`, feedback",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "action",
+                        "categoryAxisLabel": "action",
+                        "valueAxis": "dt.davis.timeout",
+                        "valueAxisLabel": "dt.davis.timeout"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "action"
+                        ],
+                        "values": [
+                            "dt.davis.timeout"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 225.65625,
+                        "[\"event.name\"]": 222.28125,
+                        "[\"feedback\"]": 214.40625,
+                        "[\"stay-informed\"]": 139.9140625,
+                        "[\"type\"]": 95.5703125,
+                        "[\"user\"]": 76.2734375
+                    }
+                }
+            }
+        },
+        "10": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter source == \"backstage\"\n| filter template == \"platform-feedback\"\n| filter type == \"improvement\"\n| fieldsKeep timestamp\n| summarize count()",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Improvement Suggestions",
+                    "prefixIcon": "ArrowUpRightIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        },
+        "11": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter source == \"backstage\"\n| filter template == \"platform-feedback\"\n| filter type == \"praise\"\n| fieldsKeep timestamp\n| summarize count()",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Praise / Thanks",
+                    "prefixIcon": "ThumbsUpIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        },
+        "12": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter source == \"backstage\"\n| filter template == \"platform-feedback\"\n| filter type == \"bug\"\n| fieldsKeep timestamp\n| summarize count()",
+            "davis": {
+                "enabled": false
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "app_name",
+                        "categoryAxisLabel": "app_name",
+                        "valueAxis": "rev",
+                        "valueAxisLabel": "rev"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "app_name"
+                        ],
+                        "values": [
+                            "rev"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Bug Reports",
+                    "prefixIcon": "BugReportIcon",
+                    "autoscale": false,
+                    "alignment": "center"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "count()",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": " new applications",
+                        "delimiter": false,
+                        "added": 1701411053862
+                    }
+                ]
+            }
+        }
+    },
+    "layouts": {
+        "0": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 2
+        },
+        "1": {
+            "x": 0,
+            "y": 11,
+            "w": 23,
+            "h": 6
+        },
+        "2": {
+            "x": 0,
+            "y": 17,
+            "w": 7,
+            "h": 6
+        },
+        "3": {
+            "x": 7,
+            "y": 17,
+            "w": 16,
+            "h": 6
+        },
+        "4": {
+            "x": 0,
+            "y": 23,
+            "w": 24,
+            "h": 4
+        },
+        "5": {
+            "x": 0,
+            "y": 3,
+            "w": 6,
+            "h": 4
+        },
+        "6": {
+            "x": 6,
+            "y": 3,
+            "w": 5,
+            "h": 4
+        },
+        "7": {
+            "x": 0,
+            "y": 2,
+            "w": 23,
+            "h": 1
+        },
+        "8": {
+            "x": 11,
+            "y": 3,
+            "w": 3,
+            "h": 4
+        },
+        "9": {
+            "x": 0,
+            "y": 7,
+            "w": 23,
+            "h": 4
+        },
+        "10": {
+            "x": 14,
+            "y": 3,
+            "w": 3,
+            "h": 4
+        },
+        "11": {
+            "x": 17,
+            "y": 3,
+            "w": 3,
+            "h": 4
+        },
+        "12": {
+            "x": 20,
+            "y": 3,
+            "w": 3,
+            "h": 4
+        }
+    }
+}
