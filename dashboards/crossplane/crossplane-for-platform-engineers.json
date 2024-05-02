@@ -1,0 +1,1315 @@
+{
+  "version": 14,
+  "variables": [],
+  "tiles": {
+    "1": {
+      "type": "markdown",
+      "title": "",
+      "content": "# Crossplane Observability for Platform Engineers"
+    },
+    "2": {
+      "type": "markdown",
+      "title": "",
+      "content": "### Is Crossplane properly scaled on Memory & CPU?"
+    },
+    "3": {
+      "type": "data",
+      "title": "Crossplane CPU Usage",
+      "query": "timeseries usage=avg(dt.kubernetes.container.cpu_usage),\nfilter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and not contains(k8s.workload.name, \"provider\") and not contains(k8s.workload.name, \"function\"), \nby:{k8s.workload.name}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxisLabel": "k8s.workload.name",
+            "valueAxisLabel": "interval",
+            "categoryAxis": "k8s.workload.name",
+            "valueAxis": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "k8s.workload.name"
+            ],
+            "fields": [],
+            "values": []
+          },
+          "leftYAxisSettings": {
+            "label": ""
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "usage",
+            "unitCategory": "unspecified",
+            "baseUnit": "millicore",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707379122882
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "4": {
+      "type": "data",
+      "title": "CPU Usage by Provider",
+      "query": "timeseries usage=avg(dt.kubernetes.container.cpu_usage), filter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and contains(k8s.workload.name, \"provider\"), by:{k8s.workload.name}\n| fieldsAdd provider = \n  if(contains(k8s.workload.name, \"civo\"), \"civo/civo\", \n  else: if(contains(k8s.workload.name, \"helm\"), \"crossplane-contrib/helm\", \n  else: if(contains(k8s.workload.name, \"kubernetes\"), \"crossplane-contrib/kubernetes\", \n  else: if(contains(k8s.workload.name, \"sql\"), \"crossplane/sql\", \n  else: if(contains(k8s.workload.name, \"aws\"), \"upbound/aws\", \n  else: if(contains(k8s.workload.name, \"azure\"), \"upbound/azure\", \n  else: if(contains(k8s.workload.name, \"gcp\"), \"upbound/gcp\", \n  else: if(contains(k8s.workload.name, \"terraform\"), \"upbound/terraform\", \n  else: k8s.workload.name \n  ))))))))\n| summarize usage=avg(usage[]), by:{provider, timeframe, interval}\n",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxisLabel": "provider",
+            "valueAxisLabel": "interval",
+            "categoryAxis": "provider",
+            "valueAxis": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "provider"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "usage",
+            "unitCategory": "unspecified",
+            "baseUnit": "millicore",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707395627239
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "5": {
+      "type": "data",
+      "title": "CPU Usage by Function",
+      "query": "timeseries usage=avg(dt.kubernetes.container.cpu_usage), filter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and contains(k8s.workload.name, \"function\"), by:{k8s.workload.name}\n| fieldsAdd function = \n  if(contains(k8s.workload.name, \"auto-ready\"), \"crossplane-contrib/auto-ready\", \n  else: if(contains(k8s.workload.name, \"go-templating\"), \"crossplane-contrib/go-templating\", \n  else: if(contains(k8s.workload.name, \"patch-and-transform\"), \"crossplane-contrib/patch-and-transform\", \n  else: k8s.workload.name \n  )))\n| summarize usage=avg(usage[]), by:{function, timeframe, interval}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "function",
+            "categoryAxisLabel": "function",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "function"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "usage",
+            "unitCategory": "unspecified",
+            "baseUnit": "millicore",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707395655976
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "6": {
+      "type": "data",
+      "title": "Crossplane Memory Usage",
+      "query": "timeseries usage=avg(dt.kubernetes.container.memory_working_set),\nfilter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and not contains(k8s.workload.name, \"provider\") and not contains(k8s.workload.name, \"function\"), \nby:{k8s.workload.name}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxisLabel": "k8s.workload.name",
+            "valueAxisLabel": "interval",
+            "categoryAxis": "k8s.workload.name",
+            "valueAxis": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "k8s.workload.name"
+            ],
+            "fields": [],
+            "values": []
+          },
+          "leftYAxisSettings": {
+            "label": ""
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "7": {
+      "type": "data",
+      "title": "Memory Usage by Provider",
+      "query": "timeseries usage=avg(dt.kubernetes.container.memory_working_set), filter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and contains(k8s.workload.name, \"provider\"), by:{k8s.workload.name}\n| fieldsAdd provider = \n  if(contains(k8s.workload.name, \"civo\"), \"civo/civo\", \n  else: if(contains(k8s.workload.name, \"helm\"), \"crossplane-contrib/helm\", \n  else: if(contains(k8s.workload.name, \"kubernetes\"), \"crossplane-contrib/kubernetes\", \n  else: if(contains(k8s.workload.name, \"sql\"), \"crossplane/sql\", \n  else: if(contains(k8s.workload.name, \"aws\"), \"upbound/aws\", \n  else: if(contains(k8s.workload.name, \"azure\"), \"upbound/azure\", \n  else: if(contains(k8s.workload.name, \"gcp\"), \"upbound/gcp\", \n  else: if(contains(k8s.workload.name, \"terraform\"), \"upbound/terraform\", \n  else: k8s.workload.name \n  ))))))))\n| summarize usage=avg(usage[]), by:{provider, timeframe, interval}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxisLabel": "provider",
+            "valueAxisLabel": "interval",
+            "categoryAxis": "provider",
+            "valueAxis": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "provider"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "8": {
+      "type": "data",
+      "title": "Memory Usage by Function",
+      "query": "timeseries usage=avg(dt.kubernetes.container.memory_working_set), filter: k8s.cluster.name == \"crossplane-observability-demo\" and k8s.namespace.name == \"crossplane-system\" and contains(k8s.workload.name, \"function\"), by:{k8s.workload.name}\n| fieldsAdd function = \n  if(contains(k8s.workload.name, \"auto-ready\"), \"crossplane-contrib/auto-ready\", \n  else: if(contains(k8s.workload.name, \"go-templating\"), \"crossplane-contrib/go-templating\", \n  else: if(contains(k8s.workload.name, \"patch-and-transform\"), \"crossplane-contrib/patch-and-transform\", \n  else: k8s.workload.name \n  )))\n| summarize usage=avg(usage[]), by:{function, timeframe, interval}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "areaChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "function",
+            "categoryAxisLabel": "function",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "usage"
+            ],
+            "leftAxisDimensions": [
+              "function"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "breakdown",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "11": {
+      "type": "markdown",
+      "title": "",
+      "content": "### What if resource creation takes longer than expected?"
+    },
+    "12": {
+      "type": "data",
+      "title": "Average Time to Readiness",
+      "query": "timeseries {\n  ttr_sum = avg(upjet_resource_ttr_sum),\n  ttr_count = avg(upjet_resource_ttr_count)\n},\nfilter: k8s.cluster.name == \"crossplane-observability-demo\",\nby: {kind, group}\n| fieldsAdd duration = ttr_sum[] / ttr_count[]\n| fieldsRemove ttr_count, ttr_sum",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "kind",
+            "categoryAxisLabel": "kind",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "duration"
+            ],
+            "leftAxisDimensions": [
+              "kind",
+              "group"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "13": {
+      "type": "data",
+      "title": "Average Time to Delete",
+      "query": "timeseries {\n  sum = avg(upjet_resource_deletion_seconds_sum),\n  count = avg(upjet_resource_deletion_seconds_count)\n}, filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {kind, group}\n| fieldsAdd duration = sum[] / count[]\n| fieldsRemove sum, count",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "kind",
+            "categoryAxisLabel": "kind",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "duration"
+            ],
+            "leftAxisDimensions": [
+              "kind",
+              "group"
+            ]
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "14": {
+      "type": "markdown",
+      "title": "",
+      "content": "### What if resources fail to materialize at all?"
+    },
+    "15": {
+      "type": "data",
+      "title": "Number of Reconcile Errors",
+      "query": "timeseries sum(controller_runtime_reconcile_errors_total), filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {controller}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "controller",
+            "categoryAxisLabel": "controller",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "sum(controller_runtime_reconcile_errors_total)"
+            ],
+            "leftAxisDimensions": [
+              "controller"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "16": {
+      "type": "data",
+      "title": "Kubernetes warnings",
+      "query": "fetch events \n| filter dt.entity.kubernetes_cluster.name == \"crossplane-observability-demo\" and status == \"WARN\"\n| makeTimeseries count = count(), by:{dt.kubernetes.event.involved_object.kind}, time:{timestamp}\n| limit 10",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "barChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "dt.kubernetes.event.involved_object.kind",
+            "categoryAxisLabel": "dt.kubernetes.event.involved_object.kind",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "count"
+            ],
+            "leftAxisDimensions": [
+              "dt.kubernetes.event.involved_object.kind"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "sum(upjet_resource_ext_api_duration_sum)",
+            "unitCategory": "time",
+            "baseUnit": "millisecond",
+            "displayUnit": null,
+            "decimals": 0,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "17": {
+      "type": "data",
+      "title": "Number of reconciles by Controller",
+      "query": "timeseries avg(controller_runtime_reconcile_total), filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {controller}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "controller",
+            "categoryAxisLabel": "controller",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "avg(controller_runtime_reconcile_total)"
+            ],
+            "leftAxisDimensions": [
+              "controller"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "18": {
+      "type": "data",
+      "title": "Average Reconcile Time",
+      "query": "timeseries {\n  sum = avg(controller_runtime_reconcile_time_seconds_sum),\n  count = avg(controller_runtime_reconcile_time_seconds_count)\n}, filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {controller}\n| fieldsAdd duration = sum[] / count[]\n| fieldsRemove sum, count",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "controller",
+            "categoryAxisLabel": "controller",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "duration"
+            ],
+            "leftAxisDimensions": [
+              "controller"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "19": {
+      "type": "data",
+      "title": "Average API Request Time",
+      "query": "timeseries {sum(upjet_resource_ext_api_duration_sum)}, filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {operation}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "operation",
+            "categoryAxisLabel": "operation",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "sum(upjet_resource_ext_api_duration_sum)"
+            ],
+            "leftAxisDimensions": [
+              "operation"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "sum(upjet_resource_ext_api_duration_sum)",
+            "unitCategory": "time",
+            "baseUnit": "millisecond",
+            "displayUnit": null,
+            "decimals": 0,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "20": {
+      "type": "data",
+      "title": "Workqueue Depth",
+      "query": "timeseries sum(workqueue_depth), filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {name}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "name",
+            "categoryAxisLabel": "name",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "sum(workqueue_depth)"
+            ],
+            "leftAxisDimensions": [
+              "name"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "duration",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": false,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    },
+    "21": {
+      "type": "data",
+      "title": "Longest running processor",
+      "query": "timeseries avg(workqueue_longest_running_processor_seconds), filter: k8s.cluster.name == \"crossplane-observability-demo\", by: {name}",
+      "davis": {
+        "enabled": false,
+        "davisVisualization": {
+          "isAvailable": true
+        }
+      },
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "thresholds": [],
+        "chartSettings": {
+          "gapPolicy": "connect",
+          "circleChartSettings": {
+            "groupingThresholdType": "relative",
+            "groupingThresholdValue": 0,
+            "valueType": "relative"
+          },
+          "categoryOverrides": {},
+          "categoricalBarChartSettings": {
+            "categoryAxis": "name",
+            "categoryAxisLabel": "name",
+            "valueAxis": "interval",
+            "valueAxisLabel": "interval"
+          },
+          "fieldMapping": {
+            "timestamp": "timeframe",
+            "leftAxisValues": [
+              "avg(workqueue_longest_running_processor_seconds)"
+            ],
+            "leftAxisDimensions": [
+              "name"
+            ],
+            "fields": [],
+            "values": []
+          }
+        },
+        "singleValue": {
+          "showLabel": true,
+          "label": "",
+          "prefixIcon": "",
+          "recordField": "group",
+          "autoscale": true,
+          "alignment": "center",
+          "colorThresholdTarget": "value"
+        },
+        "table": {
+          "rowDensity": "condensed",
+          "enableSparklines": false,
+          "hiddenColumns": [],
+          "lineWrapIds": [],
+          "columnWidths": {}
+        },
+        "unitsOverrides": [
+          {
+            "identifier": "avg(workqueue_longest_running_processor_seconds)",
+            "unitCategory": "time",
+            "baseUnit": "second",
+            "displayUnit": null,
+            "decimals": 1,
+            "suffix": "",
+            "delimiter": true,
+            "added": 1707858647998
+          }
+        ],
+        "histogram": {
+          "dataMappings": [
+            {
+              "valueAxis": "interval",
+              "rangeAxis": ""
+            }
+          ]
+        },
+        "honeycomb": {
+          "shape": "square"
+        }
+      }
+    }
+  },
+  "layouts": {
+    "1": {
+      "x": 0,
+      "y": 0,
+      "w": 24,
+      "h": 1
+    },
+    "2": {
+      "x": 0,
+      "y": 1,
+      "w": 12,
+      "h": 1
+    },
+    "3": {
+      "x": 0,
+      "y": 2,
+      "w": 3,
+      "h": 7
+    },
+    "4": {
+      "x": 3,
+      "y": 2,
+      "w": 4,
+      "h": 7
+    },
+    "5": {
+      "x": 7,
+      "y": 2,
+      "w": 4,
+      "h": 7
+    },
+    "6": {
+      "x": 0,
+      "y": 9,
+      "w": 3,
+      "h": 7
+    },
+    "7": {
+      "x": 3,
+      "y": 9,
+      "w": 4,
+      "h": 7
+    },
+    "8": {
+      "x": 7,
+      "y": 9,
+      "w": 4,
+      "h": 7
+    },
+    "11": {
+      "x": 12,
+      "y": 1,
+      "w": 11,
+      "h": 1
+    },
+    "12": {
+      "x": 12,
+      "y": 2,
+      "w": 6,
+      "h": 6
+    },
+    "13": {
+      "x": 18,
+      "y": 2,
+      "w": 6,
+      "h": 6
+    },
+    "14": {
+      "x": 12,
+      "y": 8,
+      "w": 12,
+      "h": 1
+    },
+    "15": {
+      "x": 12,
+      "y": 9,
+      "w": 6,
+      "h": 7
+    },
+    "16": {
+      "x": 18,
+      "y": 9,
+      "w": 6,
+      "h": 7
+    },
+    "17": {
+      "x": 0,
+      "y": 16,
+      "w": 8,
+      "h": 7
+    },
+    "18": {
+      "x": 8,
+      "y": 16,
+      "w": 8,
+      "h": 7
+    },
+    "19": {
+      "x": 0,
+      "y": 23,
+      "w": 8,
+      "h": 8
+    },
+    "20": {
+      "x": 16,
+      "y": 16,
+      "w": 8,
+      "h": 7
+    },
+    "21": {
+      "x": 8,
+      "y": 23,
+      "w": 8,
+      "h": 8
+    }
+  }
+}
