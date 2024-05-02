@@ -1,10 +1,8 @@
-# How to Make Crossplane Observable
+# How to ensure Crossplane Resiliency through Observability
 
-Build trust in your platform by quickly achieving Crossplane observability with our step-by-step instructions and sample
-dashboard.
+Build trust in your platform by quickly achieving Crossplane observability with our step-by-step instructions and sample dashboard.
 
-This was inspired by the
-talk [Crossplane Observability at KubeCon 2024](https://www.linkedin.com/posts/grabnerandi_observability-crossplane-kubecon-activity-7186289956489744384-AUzV?utm_source=share&utm_medium=member_desktop).
+This was inspired by the talk [Crossplane Observability at KubeCon 2024](https://www.linkedin.com/posts/grabnerandi_observability-crossplane-kubecon-activity-7186289956489744384-AUzV?utm_source=share&utm_medium=member_desktop).
 
 ## Get Started
 
