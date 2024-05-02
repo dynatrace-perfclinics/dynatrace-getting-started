@@ -1,0 +1,86 @@
+{
+  "version": "5",
+  "defaultTimeframe": {
+    "from": "2024-03-19T23:00:00.000Z",
+    "to": "2024-03-21T22:59:59.000Z",
+    "details": {
+      "from": {
+        "type": "iso8601",
+        "normalized": "2024-03-19T23:00:00.000Z",
+        "date": "2024-03-19T23:00:00.000Z"
+      },
+      "to": {
+        "type": "iso8601",
+        "normalized": "2024-03-21T22:59:59.000Z",
+        "date": "2024-03-21T22:59:59.000Z"
+      }
+    }
+  },
+  "sections": [
+    {
+      "id": "ebefb24d-96c8-4b6a-b347-f046a78a193e",
+      "type": "markdown",
+      "markdown": "# How to Make Crossplane Observable\n\nThis notebook provides a guide on using Dynatrace to monitor [Crossplane](https://www.crossplane.io) and its providers. You'll learn how to leverage Crossplane metrics to build dashboards and configure alerts.\n\nGot questions or feedback?: devrel@dynatrace.com﻿\n\nTarget Audience: DevSecOps, Platform Engineers, SREs\n\n![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/dashboard_crossplane_for_platform_engineers.png)"
+    },
+    {
+      "id": "2b0f5bfa-2696-4c62-8051-5074e8d2d480",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "77295c2e-d4df-4711-88bb-712cdc4b9885",
+      "type": "markdown",
+      "markdown": "# Prerequisites\n\n- [A Crossplane installation](https://docs.crossplane.io/latest/software/install/)\n- [Dynatrace configured on the Kubernetes cluster Crossplane is deployed to](https://docs.dynatrace.com/docs/setup-and-configuration/setup-on-k8s)"
+    },
+    {
+      "id": "d38cd7c8-761d-4f8a-8fd7-7e43bd360b24",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "3e68730d-ecdd-4a38-b96b-eec15cf61d89",
+      "type": "markdown",
+      "markdown": "# Step 1: Expose Crossplane Metrics\n\nTo begin, configure Crossplane to expose metrics by adjusting values file of Helm chart you used to deploy Crossplane. Add the following entry to your `values.yaml`:\n\n```yaml\nmetrics:\n  enabled: true\n```\n\nAfter updating the configuration, redeploy Crossplane. If you installed Crossplane manually via Helm, use the following command to update your installation:\n\n```sh\nhelm upgrade \\\n  --namespace crossplane-system \\\n  --values crossplane-values.yaml \\\n  crossplane crossplane-stable/crossplane\n```\n\nOnce the Helm chart is reapplied, verify that the Crossplane deployment exposes port 8080:\n\n```sh\nkubectl \\\n  --namespace crossplane-system \\\n  --output yaml \\\n  get deployment crossplane \\\n  | grep -A 9 'ports:'\n```\n\nThe output should show port 8080 is now available. If not, ensure the Crossplane Helm chart was successfully redeployed and all pods have restarted.\n\nTo inspect the metrics Crossplane exposes, set up port forwarding to the service on port 8080 and use curl to fetch the metrics:\n\n```sh\nkubectl \\\n  --namespace crossplane-system \\\n  port-forward deployment/crossplane 8080:8080\n```\n\n```sh\ncurl http://localhost:8080/metrics\n```"
+    },
+    {
+      "id": "3770acde-bcd0-47a6-861b-f68c66a55c1e",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "82d33d41-c99a-483b-ad36-5c1fc27fd0b0",
+      "type": "markdown",
+      "markdown": "# Step 2: Expose Crossplane Provider Metrics\n\nCrossplane providers generated with [Upjet](https://github.com/crossplane/upjet/tree/main) automatically expose metrics by default. This applies to most providers, so additional configuration is typically not required.\n\n## How to Verify if a Provider Was Generated with Upjet?\n\n1. **Search in the Upbound Marketplace**: Look for the provider in the [Upbound Marketplace](https://marketplace.upbound.io/providers). Providers with the \"Upbound Official\" tag are managed by the official Crossplane team and automatically expose metrics.\n2. **Check Provider Documentation**: If the provider does not have the \"Upbound Official\" tag, review the provider's README or documentation for mentions of upjet or metrics to confirm metrics exposure.\n\n## What if My Provider Was Not Generated with Upjet?\n\nIf your provider was not generated with Upjet, you will need to refer to the provider's documentation or explore issues within the community for guidance on metric exposure. You might also consider contributing to the provider's development to include metric exposure. This guide assumes that the metrics defined in the [Upjet documentation](https://github.com/crossplane/upjet/blob/main/docs/monitoring.md) are exposed."
+    },
+    {
+      "id": "7884f26b-5d7f-49ae-b192-e58d34efdac6",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "8f66a3ad-506b-4652-b8f9-c83cff7f9169",
+      "type": "markdown",
+      "markdown": "# Step 3: Collect All Metrics\n\nIn this step, we will configure Dynatrace to scrape metrics from Crossplane and its providers.\n\n## Scrape Crossplane Metrics\n\nAdd the following entry to your `values.yaml` file used to configure your Crossplane Helm deployment:\n\n```yaml\ncustomAnnotations:\n  metrics.dynatrace.com/scrape: 'true'\n  metrics.dynatrace.com/port: '8080'\n  metrics.dynatrace.com/path: '/metrics'\n```\n\nAfter updating the configuration, redeploy Crossplane. If you installed Crossplane manually via Helm, use the following command to update your installation:\n\n```sh\nhelm upgrade \\\n  --namespace crossplane-system \\\n  --values crossplane-values.yaml \\\n  crossplane crossplane-stable/crossplane\n```\n\nTo ensure the annotations are correctly applied, inspect the Crpssplane deployment again:\n\n```sh\nkubectl \\\n  --namespace crossplane-system \\\n  --output yaml \\\n  get deployment crossplane \\\n  | grep -A 6 'annotations:'\n```\n\nThe output should display the annotations under the metadata section similar to this. If not, ensure the Crossplane Helm chart was successfully redeployed and all pods have restarted.\n\n```yaml\nannotations:\n  metrics.dynatrace.com/scrape: \"true\"\n  metrics.dynatrace.com/port: \"8080\"\n  metrics.dynatrace.com/path: \"/metrics\"\n```\n\n## Scrape Crossplane Provider Metrics\n\nDefine a [DeploymentRuntimeConfig](https://docs.crossplane.io/latest/concepts/providers/#runtime-configuration) to apply Dynatrace scraping settings across all provider deployments and pods:\n\n```yaml\napiVersion: pkg.crossplane.io/v1beta1\nkind: DeploymentRuntimeConfig\nmetadata:\n  name: default\n  namespace: crossplane-system\nspec:\n  deploymentTemplate:\n    metadata:\n      annotations:\n        metrics.dynatrace.com/scrape: \"true\"\n        metrics.dynatrace.com/port: \"8080\"\n        metrics.dynatrace.com/path: /metrics\n    spec:\n      selector: {}\n      template:\n        metadata:\n          annotations:\n            metrics.dynatrace.com/scrape: \"true\"\n            metrics.dynatrace.com/port: \"8080\"\n            metrics.dynatrace.com/path: /metrics\n```\n\nDeploy this configuration to your cluster:\n\n```sh\nkubectl apply -f deployment-runtime-config.yaml\n```\n\nAfter deploying, check the provider pods to confirm that the annotations are set. For the [Upbound AWS provider] you could inspect the pod with this command:\n\n```sh\nkubectl \\\n  --namespace crossplane-system \\\n  --output yaml \\\n  get deployment provider-aws \\\n  | grep 'annotations:' -A 6\n```\n\nYou should see the necessary annotations listed similarly as shown for the Crossplane metrics.\n"
+    },
+    {
+      "id": "ee16282b-1ebe-4650-a6c9-e6cfe42514a5",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "ac53813a-7c1f-44c6-b546-8eeb522011b3",
+      "type": "markdown",
+      "markdown": "# Step 4: Chart the Metrics\n\nWith Dynatrace configured to automatically scrape all Crossplane metrics, it's time to visualize these metrics. You can combine the freshly scraped Crossplane metrics with standard Kubernetes metrics, such as CPU and Memory usage, to create a comprehensive view.\n\n> **Pro tip**: Crossplane heavily relies on Kubernetes events to emit information and problems, so consider including these to gain additional insights.\n\n## Which Crossplane Metrics Are Available?\n\nCrossplane and its providers expose a variety of metrics. For a detailed list of all available metrics, refer to their official documentation:\n\n- [Crossplane metrics documentation](https://docs.upbound.io/xp-arch-framework/interface-integrations/monitoring-and-observability/)\n- [Upjet provider metrics documentation](https://github.com/crossplane/upjet/blob/main/docs/monitoring.md)\n\n## Use Our Sample Dashboard to Get Started\n\nTo assist you in getting started with building a Crossplane dashboard, we have created a sample dashboard. Feel free to [download its JSON definition](https://github.com/dynatrace-perfclinics/community-tips-tricks/blob/main/ep20/crossplane-dashboard.json) and import it to your tenant to get started.\n\n![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/dashboard_crossplane_for_platform_engineers.png)"
+    },
+    {
+      "id": "23eefd13-39cd-40aa-9362-924dbe796072",
+      "type": "markdown",
+      "markdown": "--- \n "
+    },
+    {
+      "id": "2f4047e9-1a83-4804-b35e-591144d591d9",
+      "type": "markdown",
+      "markdown": "# Where to go from here?\n\nNow that you have all the metrics at your fingertips and know how to query them using DQL, it's time to get creative.\n\nYou can, for example, configure a [Site Reliability Guardian](https://docs.dynatrace.com/docs/platform-modules/automations/site-reliability-guardian) to regularly execute DQL queries nd monitor your system’s performance within specified thresholds. For instance, to ensure the maximum time to readiness is within an acceptable range, you could use the following DQL query:\n\n```dql\ntimeseries {\n  ttr_sum = avg(upjet_resource_ttr_sum),\n  ttr_count = avg(upjet_resource_ttr_count)\n},\nfilter: k8s.cluster.name == \"your-cluster-name\"\n| fieldsAdd duration = ttr_sum[] / ttr_count[]\n| fields ttr=arrayMax(duration)\n```\n\nAdditionally, you can configure [Metric events](https://docs.dynatrace.com/docs/platform/davis-ai/anomaly-detection/metric-events) for automated alerts if a metric is above or below a certain threshold."
+    }
+  ]
+}
