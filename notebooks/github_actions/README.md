@@ -60,7 +60,7 @@ jobs:
 
 ### Raw View of all GitHub Action Runs
 
-![images/TODO.png]
+![show all bizevents](images/all-events.png)
 
 ```
 fetch bizevents
@@ -71,7 +71,7 @@ fetch bizevents
 ### Number of Runs by Provider and Type
 Count the nubmer of runs, split by the `type` field (which you can set to anything).
 
-![images/TODO.png]
+![github action executions split by provider and type](images/split-provider-type.png)
 
 ```
 fetch bizevents
@@ -82,7 +82,7 @@ fetch bizevents
 
 ### Show Average Duration of GitHub Action Runs
 
-![images/TODO.png]
+![github action duration](images/avg-duration.png)
 
 ```
 fetch bizevents
