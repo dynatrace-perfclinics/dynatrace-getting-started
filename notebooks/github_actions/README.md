@@ -15,7 +15,10 @@ on: workflow_dispatch
 
 jobs:
   Export-Configuration:
-    environment: DUMMY
+# GitHub requires that you create an environment
+# Then you create secrets inside that env
+# My environment was called `DUMMY`
+#    environment: DUMMY
     runs-on: ubuntu-latest
     steps:
 
