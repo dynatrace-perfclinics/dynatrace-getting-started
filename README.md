@@ -47,6 +47,7 @@ I also added some **Hands-On Tutorial Notebooks** with Step-by-Step instructions
 * [(Live Tutorial Notebook) How to work with Davis-detected Problems](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=529dc6b6-db2d-4cdc-94fc-d4b5b9146a13)
 * [(Live Tutorial Notebook) How to do Application Security with Dynatrace](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=73c1c847-5e49-4bdf-9ece-365404fa2e28)
 * [(Live Tutorial Notebook) How to analyze logs relevant to me](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=ad531ecd-ad5d-4249-a095-df5bc8a0a97e)
+* [(Live Tutorial Notebook) How to analyze Jenkins Jobs with OpenTelemetry](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=da5efb6a-b897-45c7-86e4-1f39cc33ee90)
 
 I added new Notebooks for my **The Observability Guide to Platform Engineering** Series:
 * [(Live Tutorial Notebook) How to make your K8s Platform Observable](https://wkf10640.apps.dynatrace.com/ui/document/v0/#share=b82b694c-e137-4654-ac43-36ba212efa62)
