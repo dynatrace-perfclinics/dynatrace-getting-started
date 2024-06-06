@@ -2,7 +2,7 @@
 
 ![Dynatrace dashboard](images/dashboard.png)
 
-TLDR: Try a hands on demo here: `TODO`
+TLDR: Try a hands on demo here: `Coming soon...`
 
 ## Building k6 Binary
 k6 requires that you build a custom binary with the Dynatrace output plugin installed. Instructions on how to do so can be found [here](https://github.com/Dynatrace/xk6-output-dynatrace).
