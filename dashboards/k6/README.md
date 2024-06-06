@@ -5,7 +5,7 @@
 TLDR: Try a hands on demo here: `TODO`
 
 ## Building k6 Binary
-k6 requires that you build a custom binary with the Dynatrace output plugin installed. Instructions on how to do so can be found here.
+k6 requires that you build a custom binary with the Dynatrace output plugin installed. Instructions on how to do so can be found [here](https://github.com/Dynatrace/xk6-output-dynatrace).
 
 ## Import Dashboard
 In Dynatrace, go to dashboards and import the dashboard JSON from this folder.
