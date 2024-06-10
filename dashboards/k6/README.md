@@ -1,6 +1,6 @@
 # Dynatrace + k6 Integration
 
-![Dynatrace dashboard](images/dashboard.png)
+![Dynatrace dashboard](images/dashboard_v2.png)
 
 TLDR: Try a hands on demo here: `Coming soon...`
 
