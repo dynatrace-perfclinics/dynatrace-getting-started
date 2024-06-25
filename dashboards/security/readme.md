@@ -14,6 +14,6 @@ For more information about how security reporting, refer to [Security data analy
 ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/dashboard_security_threat_exposure_overview.png)
 
 **Container Vulnerability Findings** - This report template provides an overview of the vulnerability findings in the artifact registries of your container images.
-[Download](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/blob/041e174326a7b2cbc098a49775976f1986ad734d/dashboards/security/Container%20Vulnerability%20Findings.json) this dashboard and import it in your own Dynatrace Environment
+[Download](https://github.com/dynatrace-perfclinics/dynatrace-getting-started/blob/427cb1bce6c1507b701e0de09301635ebabdd090/dashboards/security/Container%20Vulnerability%20Findings.json) this dashboard and import it in your own Dynatrace Environment
 
-![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/blob/041e174326a7b2cbc098a49775976f1986ad734d/images/dashboard_security_container_vulnerability_findings.png)
+![](https://github.com/dynatrace-perfclinics/dynatrace-getting-started/blob/427cb1bce6c1507b701e0de09301635ebabdd090/images/dashboard_security_container_vulnerability_findings.png)
