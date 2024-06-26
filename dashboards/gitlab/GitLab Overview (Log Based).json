@@ -1,0 +1,753 @@
+{
+    "version": 11,
+    "variables": [],
+    "tiles": {
+        "2": {
+            "type": "data",
+            "title": "Request",
+            "query": "fetch logs\n| filter `k8s.deployment.name` == \"gitlab-webservice-default\"\n| parse content, \"JSON:contentjson\"\n| filter contentjson[component] == \"gitlab\"\n| makeTimeseries count(), by: toString(contentjson[status])",
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "legend": {
+                        "hidden": false,
+                        "position": "bottom"
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 163.703125,
+                        "[\"content\"]": 600,
+                        "[\"dt.entity.cloud_application_instance\"]": 358.34375,
+                        "[\"dt.source_entity\"]": 358.34375,
+                        "[\"event.type\"]": 114.703125,
+                        "[\"k8s.container.name\"]": 173.0625,
+                        "[\"k8s.deployment.name\"]": 188.765625,
+                        "[\"k8s.namespace.name\"]": 186.046875,
+                        "[\"k8s.pod.name\"]": 308.34375,
+                        "[\"k8s.pod.uid\"]": 291.90625,
+                        "[\"loglevel\"]": 97.671875,
+                        "[\"status\"]": 88.53125,
+                        "[\"dt.auth.origin\"]": 267.640625,
+                        "[\"k8s.container.restart_count\"]": 225.375,
+                        "[\"k8s.node.name\"]": 277.59375,
+                        "[\"k8s.pod.start_time\"]": 220.015625,
+                        "[\"log.file.path\"]": 600,
+                        "[\"log.iostream\"]": 128.09375,
+                        "[\"logtag\"]": 88.5,
+                        "[\"time\"]": 236.484375
+                    }
+                }
+            }
+        },
+        "3": {
+            "type": "data",
+            "title": "Access Log",
+            "query": "fetch logs\n| filter `k8s.deployment.name` == \"gitlab-webservice-default\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson\n| filter contentjson.component == \"gitlab\"\n| filter contentjson.status == 200\n| fields contentjson.meta.user, contentjson.meta.user_id, contentjson.path, contentjson.remote_ip",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "contentjson[meta.user]",
+                        "categoryAxisLabel": "contentjson[meta.user]",
+                        "valueAxis": "contentjson[meta.user_id]",
+                        "valueAxisLabel": "contentjson[meta.user_id]"
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 163.703125,
+                        "[\"content\"]": 600,
+                        "[\"dt.entity.cloud_application_instance\"]": 358.34375,
+                        "[\"dt.source_entity\"]": 358.34375,
+                        "[\"event.type\"]": 114.703125,
+                        "[\"k8s.container.name\"]": 173.0625,
+                        "[\"k8s.deployment.name\"]": 188.765625,
+                        "[\"k8s.namespace.name\"]": 186.046875,
+                        "[\"k8s.pod.name\"]": 308.34375,
+                        "[\"k8s.pod.uid\"]": 291.90625,
+                        "[\"loglevel\"]": 97.671875,
+                        "[\"status\"]": 88.53125,
+                        "[\"dt.auth.origin\"]": 267.640625,
+                        "[\"k8s.container.restart_count\"]": 225.375,
+                        "[\"k8s.node.name\"]": 277.59375,
+                        "[\"k8s.pod.start_time\"]": 220.015625,
+                        "[\"log.file.path\"]": 600,
+                        "[\"log.iostream\"]": 128.09375,
+                        "[\"logtag\"]": 88.5,
+                        "[\"time\"]": 236.484375,
+                        "[\"contentjson[meta.user]\"]": 198.390625,
+                        "[\"contentjson[meta.user_id]\"]": 217.296875,
+                        "[\"contentjson[path]\"]": 468.09375,
+                        "[\"contentjson[remote_ip]\"]": 199
+                    }
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "contentjson.meta.user_id",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 3,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1703063409560
+                    }
+                ]
+            }
+        },
+        "4": {
+            "type": "data",
+            "title": "CPU Usage",
+            "query": "timeseries avg(dt.containers.cpu.usage_percent), by:{Container}, {filter: k8s.namespace.name == \"gitlab\"}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "5": {
+            "type": "data",
+            "title": "Memory Usage",
+            "query": "timeseries avg(dt.containers.memory.usage_percent), by:{Container}, {filter: k8s.namespace.name == \"gitlab\"}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "6": {
+            "type": "data",
+            "title": "Error Log",
+            "query": "fetch `logs`\n| filter k8s.namespace.name == \"gitlab\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson\n| fieldsKeep timestamp, k8s.container.name, contentjson.uri\n| limit 20",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "content",
+                        "categoryAxisLabel": "content",
+                        "valueAxis": "contentjson.duration_ms",
+                        "valueAxisLabel": "contentjson.duration_ms"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "content"
+                        ],
+                        "values": [
+                            "contentjson.duration_ms"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 248.703125,
+                        "[\"content\"]": 600,
+                        "[\"dt.entity.cloud_application_instance\"]": 358.34375,
+                        "[\"dt.source_entity\"]": 358.34375,
+                        "[\"event.type\"]": 114.703125,
+                        "[\"k8s.container.name\"]": 173.0625,
+                        "[\"k8s.deployment.name\"]": 188.765625,
+                        "[\"k8s.namespace.name\"]": 186.046875,
+                        "[\"k8s.pod.name\"]": 308.34375,
+                        "[\"k8s.pod.uid\"]": 291.90625,
+                        "[\"loglevel\"]": 97.671875,
+                        "[\"status\"]": 88.53125,
+                        "[\"dt.auth.origin\"]": 267.640625,
+                        "[\"k8s.container.restart_count\"]": 225.375,
+                        "[\"k8s.node.name\"]": 277.59375,
+                        "[\"k8s.pod.start_time\"]": 220.015625,
+                        "[\"log.file.path\"]": 600,
+                        "[\"log.iostream\"]": 128.09375,
+                        "[\"logtag\"]": 88.5,
+                        "[\"time\"]": 236.484375
+                    }
+                }
+            }
+        },
+        "7": {
+            "type": "data",
+            "title": "Access / Project",
+            "query": "fetch `logs`\n| filter k8s.namespace.name == \"gitlab\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson\n| makeTimeseries count(), by: contentjson[meta.project]",
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "contentjson[meta.user]",
+                        "categoryAxisLabel": "contentjson[meta.user]",
+                        "valueAxis": "contentjson[meta.user_id]",
+                        "valueAxisLabel": "contentjson[meta.user_id]"
+                    },
+                    "leftYAxisSettings": {
+                        "scale": "linear"
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"timestamp\"]": 163.703125,
+                        "[\"content\"]": 600,
+                        "[\"dt.entity.cloud_application_instance\"]": 358.34375,
+                        "[\"dt.source_entity\"]": 358.34375,
+                        "[\"event.type\"]": 114.703125,
+                        "[\"k8s.container.name\"]": 173.0625,
+                        "[\"k8s.deployment.name\"]": 188.765625,
+                        "[\"k8s.namespace.name\"]": 186.046875,
+                        "[\"k8s.pod.name\"]": 308.34375,
+                        "[\"k8s.pod.uid\"]": 291.90625,
+                        "[\"loglevel\"]": 97.671875,
+                        "[\"status\"]": 88.53125,
+                        "[\"dt.auth.origin\"]": 267.640625,
+                        "[\"k8s.container.restart_count\"]": 225.375,
+                        "[\"k8s.node.name\"]": 277.59375,
+                        "[\"k8s.pod.start_time\"]": 220.015625,
+                        "[\"log.file.path\"]": 600,
+                        "[\"log.iostream\"]": 128.09375,
+                        "[\"logtag\"]": 88.5,
+                        "[\"time\"]": 236.484375
+                    }
+                }
+            }
+        },
+        "8": {
+            "type": "data",
+            "title": "Projects total",
+            "query": "fetch logs\n| filter `k8s.deployment.name` == \"gitlab-webservice-default\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson\n| fieldsKeep contentjson.meta.project \n| summarize countDistinct(contentjson.meta.project)",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "content",
+                        "categoryAxisLabel": "content",
+                        "valueAxis": "contentjson.duration_ms",
+                        "valueAxisLabel": "contentjson.duration_ms"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "content"
+                        ],
+                        "values": [
+                            "contentjson.duration_ms"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "isVisible": false
+                    },
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "9": {
+            "type": "data",
+            "title": "Groups",
+            "query": "fetch logs\n| filter `k8s.deployment.name` == \"gitlab-webservice-default\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson\n| fieldsKeep contentjson.meta.group \n| summarize countDistinct(contentjson.meta.group)",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "content",
+                        "categoryAxisLabel": "content",
+                        "valueAxis": "contentjson.duration_ms",
+                        "valueAxisLabel": "contentjson.duration_ms"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "content"
+                        ],
+                        "values": [
+                            "contentjson.duration_ms"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "isVisible": false
+                    },
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "10": {
+            "type": "markdown",
+            "title": "",
+            "content": "## GitLAB Dashboard"
+        },
+        "11": {
+            "type": "data",
+            "title": "",
+            "query": "fetch `logs`\n| filter k8s.namespace.name == \"argocd\"\n//| filter k8s.container.name == \"workflows\"\n| parse content, \"JSON:contentjson\"\n| fieldsFlatten contentjson",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": "content",
+                        "categoryAxisLabel": "content",
+                        "valueAxis": "contentjson.catfile.duration_ms",
+                        "valueAxisLabel": "contentjson.catfile.duration_ms"
+                    },
+                    "fieldMapping": {
+                        "timestamp": "timestamp",
+                        "fields": [
+                            "content"
+                        ],
+                        "values": [
+                            "contentjson.catfile.duration_ms"
+                        ]
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "13": {
+            "type": "data",
+            "title": "",
+            "query": "fetch dt.entity.container_group\n| filter startsWith(entity.name, \"gitlab-side\")\n| filter entity.name == \"gitlab-sidekiq-all-in-*-v*-*\"",
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {
+                        "[\"entity.name\"]": 375.765625,
+                        "[\"id\"]": 278.109375
+                    }
+                }
+            }
+        },
+        "14": {
+            "type": "data",
+            "title": "",
+            "query": "timeseries sum(workqueue_depth)",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "15": {
+            "type": "data",
+            "title": "Requests / min",
+            "query": "fetch logs\n| filter `k8s.deployment.name` == \"gitlab-webservice-default\"\n| parse content, \"JSON:contentjson\"\n| filter contentjson[component] == \"gitlab\"\n| summarize count()",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "isBackgroundThresholdActive": false
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "content"
+                        ]
+                    ],
+                    "columnWidths": {}
+                }
+            }
+        },
+        "16": {
+            "type": "markdown",
+            "title": "",
+            "content": " "
+        }
+    },
+    "layouts": {
+        "2": {
+            "x": 14,
+            "y": 3,
+            "w": 7,
+            "h": 5
+        },
+        "3": {
+            "x": 0,
+            "y": 8,
+            "w": 24,
+            "h": 4
+        },
+        "4": {
+            "x": 0,
+            "y": 3,
+            "w": 7,
+            "h": 5
+        },
+        "5": {
+            "x": 7,
+            "y": 3,
+            "w": 7,
+            "h": 5
+        },
+        "6": {
+            "x": 0,
+            "y": 16,
+            "w": 24,
+            "h": 4
+        },
+        "7": {
+            "x": 0,
+            "y": 12,
+            "w": 24,
+            "h": 4
+        },
+        "8": {
+            "x": 0,
+            "y": 1,
+            "w": 5,
+            "h": 2
+        },
+        "9": {
+            "x": 5,
+            "y": 1,
+            "w": 5,
+            "h": 2
+        },
+        "10": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 1
+        },
+        "11": {
+            "x": 0,
+            "y": 20,
+            "w": 24,
+            "h": 6
+        },
+        "13": {
+            "x": 0,
+            "y": 26,
+            "w": 24,
+            "h": 4
+        },
+        "14": {
+            "x": 0,
+            "y": 30,
+            "w": 23,
+            "h": 6
+        },
+        "15": {
+            "x": 0,
+            "y": 36,
+            "w": 10,
+            "h": 2
+        },
+        "16": {
+            "x": 10,
+            "y": 1,
+            "w": 11,
+            "h": 2
+        }
+    },
+    "refreshRate": 300000
+}
