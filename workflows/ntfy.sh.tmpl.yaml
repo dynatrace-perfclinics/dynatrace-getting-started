@@ -1,0 +1,27 @@
+# This workflow sends a push notification to your phone or web app using ntfy.sh
+metadata:
+  version: "1"
+  dependencies:
+    apps:
+      - id: dynatrace.automations
+        version: ^1.728.0
+  inputs: []
+workflow:
+  title: ntfy.sh template
+  tasks:
+    http_request_1:
+      name: http_request_1
+      description: Issue an HTTP request to any API
+      action: dynatrace.automations:http-function
+      input:
+        url: https://ntfy.sh/YourTopicHere
+        method: POST
+        payload: Hi...
+        failOnResponseCodes: 400-599
+      position:
+        x: 0
+        y: 1
+      predecessors: []
+  description: ""
+  trigger: {}
+  schemaVersion: 3
