@@ -5,7 +5,6 @@ This repository contains supporting material for the episode *What is Dynatrace 
 
 [>> More tutorials on YouTube](https://bit.ly/oneagenttutorials)
 
-
 **Table of Contents:**
 * [Step 1: Get your own Dynatrace Trial](#step-1-get-your-own-dynatrace-trial)
 * [Step 2: Discover Dynatrace Playground Tenant](#step-2-discover-dynatrace-playground-tenant)
