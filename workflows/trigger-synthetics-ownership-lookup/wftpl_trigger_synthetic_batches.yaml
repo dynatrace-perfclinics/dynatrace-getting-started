@@ -1,0 +1,494 @@
+metadata:
+  version: "1"
+  dependencies:
+    apps:
+      - id: dynatrace.automations
+        version: ^1.762.0
+      - id: dynatrace.email
+        version: ^0.3.0
+      - id: dynatrace.ownership
+        version: ^1.7.7
+      - id: dynatrace.synthetic.workflow.action
+        version: ^1.0.2
+  inputs: []
+workflow:
+  title: Trigger Synthetic Batches
+  tasks:
+    http_request_1:
+      name: http_request_1
+      description: Issue an HTTP request to any API
+      action: dynatrace.automations:http-function
+      input:
+        url: https://webhook.site/32b310fc-ac36-4220-b405-65d11928f8d8
+        method: POST
+        headers:
+          Content-Type: application/json
+        payload: >-
+          {
+            "message": "A synthetic monitor just finished which you own.",
+          {% for entity in _.team.entities %}
+              {% set synthetic_monitor = result("get_execution_details")["records"] | selectattr('monitor_id', 'equalto', entity) | first %}
+              "team": {
+          	  "monitor_execution": "{{ entity }} (link? > {{ environment()['url'] }}/synthetic/{{ entity }}",
+                "status": "{{ synthetic_monitor['dt.synthetic.result.status.on_demand.message'] }}",
+                "details": "{{ synthetic_monitor['dt.synthetic.result.status.message'] }}: {{ synthetic_monitor['dt.synthetic.result.status.details'] }}"
+              }
+          {% endfor %}
+
+          }
+        failOnResponseCodes: 400-599
+      position:
+        x: -1
+        y: 4
+      predecessors:
+        - get_synthetic_owners
+      conditions:
+        states:
+          get_synthetic_owners: OK
+      concurrency: 3
+      withItems: team in {{ result("get_synthetic_owners")["email"] }}
+    get_synthetic_owners:
+      name: get_synthetic_owners
+      description: Retrieves owners from Entities and Team identifiers.
+      action: dynatrace.ownership:get-ownership-from-entity
+      active: true
+      input:
+        entityIds: "{{ result(\"get_execution_details\")[\"records\"] |
+          map(attribute='monitor_id') | join(', ') }}"
+      customSampleResult:
+        jira: []
+        email:
+          - email: teamdef@dynatrace.com
+            entities:
+              - HTTP_CHECK-3940B2D3CC872C10
+            teamName: DEF
+          - email: teamabc@dynatrace.com
+            entities:
+              - HTTP_CHECK-DE1ACC402750B64F
+            teamName: ABC
+        owners:
+          - id: vu9U3hXa3q0AAAABABdidWlsdGluOm93bmVyc2hpcC50ZWFtcwAGdGVuYW50AAZ0ZW5hbnQAJDZlNDE0YmYzLTU3OWYtMzA4ZS05MDhhLWI3MzgzMzdkZTBhNL7vVN4V2t6t
+            name: DEF
+            links:
+              - url: https://dynatrace.com/teamdef
+                linkType: URL
+            identifier: DEF
+            description: team DEF
+            contactDetails:
+              - email: teamdef@dynatrace.com
+                integrationType: EMAIL
+            responsibilities:
+              security: false
+              operations: false
+              development: false
+              infrastructure: false
+              lineOfBusiness: true
+            isValidIdentifier: true
+            additionalInformation: []
+            supplementaryIdentifiers: []
+            supplementaryIdentifierUsed: false
+          - id: vu9U3hXa3q0AAAABABdidWlsdGluOm93bmVyc2hpcC50ZWFtcwAGdGVuYW50AAZ0ZW5hbnQAJDgyZWExYmNhLTliY2ItMzM3OS05NzNiLTQ5NWUwNmE1MDE5Zb7vVN4V2t6t
+            name: ABC
+            links:
+              - url: https://dynatrace.com/teamabc
+                linkType: URL
+            identifier: ABC
+            description: team ABC
+            contactDetails:
+              - email: teamabc@dynatrace.com
+                integrationType: EMAIL
+            responsibilities:
+              security: false
+              operations: true
+              development: false
+              infrastructure: true
+              lineOfBusiness: false
+            isValidIdentifier: true
+            additionalInformation: []
+            supplementaryIdentifiers: []
+            supplementaryIdentifierUsed: false
+        msTeams: []
+        slackChannels: []
+      position:
+        x: 0
+        y: 3
+      predecessors:
+        - get_execution_details
+      conditions:
+        states:
+          get_execution_details: OK
+    get_execution_details:
+      name: get_execution_details
+      description: Executes DQL query
+      action: dynatrace.automations:execute-dql-query
+      input:
+        query: >-
+          fetch dt.synthetic.events
+
+          | filter in(event.id, {{
+          result("synthetic_for_workflows_1")["dt.synthetic.triggered_executions"]
+          | join(",") }})
+
+          | filter event.type == "http_monitor_execution"
+
+          | fieldsAdd monitor_id=dt.synthetic.monitor.id
+        failOnEmptyResult: true
+      customSampleResult:
+        types:
+          - mappings:
+              event.id:
+                type: long
+              timestamp:
+                type: timestamp
+              event.kind:
+                type: string
+              event.type:
+                type: string
+              monitor_id:
+                type: string
+              dt.synthetic.batch.id:
+                type: long
+              dt.synthetic.monitor.id:
+                type: string
+              dt.synthetic.location.id:
+                type: string
+              dt.synthetic.execution.type:
+                type: string
+              dt.synthetic.execution.stage:
+                type: string
+              dt.synthetic.result.engine.id:
+                type: long
+              dt.synthetic.result.status.code:
+                type: long
+              dt.synthetic.result.location.type:
+                type: string
+              dt.synthetic.result.executed_steps:
+                type: long
+              dt.synthetic.result.status.details:
+                type: string
+              dt.synthetic.result.status.message:
+                type: string
+              dt.synthetic.execution.end_timestamp:
+                type: long
+              dt.synthetic.result.statistics.duration:
+                type: long
+              dt.synthetic.execution.scheduling_timestamp:
+                type: long
+              dt.synthetic.result.statistics.response_size:
+                type: long
+              dt.synthetic.result.status.on_demand.message:
+                type: string
+              dt.synthetic.result.statistics.redirects_count:
+                type: long
+              dt.synthetic.result.statistics.start_timestamp:
+                type: long
+              dt.synthetic.result.statistics.redirection_time:
+                type: long
+              dt.synthetic.result.statistics.tcp_connect_time:
+                type: long
+              dt.synthetic.result.statistics.time_to_first_byte:
+                type: long
+              dt.synthetic.result.statistics.tls_handshake_time:
+                type: long
+              dt.synthetic.result.statistics.response_status_code:
+                type: long
+              dt.synthetic.result.statistics.host_name_resolution_time:
+                type: long
+              dt.synthetic.result.statistics.peer_certificate_expiry_date:
+                type: long
+              dt.synthetic.result.statistics.response_body_size_limit_exceeded:
+                type: boolean
+            indexRange:
+              - 0
+              - 0
+          - mappings:
+              event.id:
+                type: long
+              timestamp:
+                type: timestamp
+              event.kind:
+                type: string
+              event.type:
+                type: string
+              monitor_id:
+                type: string
+              dt.synthetic.batch.id:
+                type: long
+              dt.synthetic.monitor.id:
+                type: string
+              dt.synthetic.location.id:
+                type: string
+              dt.synthetic.execution.type:
+                type: string
+              dt.synthetic.execution.stage:
+                type: string
+              dt.synthetic.result.engine.id:
+                type: long
+              dt.synthetic.result.status.code:
+                type: long
+              dt.synthetic.result.location.type:
+                type: string
+              dt.synthetic.result.executed_steps:
+                type: long
+              dt.synthetic.result.status.details:
+                type: string
+              dt.synthetic.result.status.message:
+                type: string
+              dt.synthetic.execution.end_timestamp:
+                type: long
+              dt.synthetic.result.failed_step.name:
+                type: string
+              dt.synthetic.result.statistics.duration:
+                type: long
+              dt.synthetic.execution.scheduling_timestamp:
+                type: long
+              dt.synthetic.result.failed_step.sequence_id:
+                type: long
+              dt.synthetic.result.statistics.response_size:
+                type: long
+              dt.synthetic.result.status.on_demand.message:
+                type: string
+              dt.synthetic.result.statistics.redirects_count:
+                type: long
+              dt.synthetic.result.statistics.start_timestamp:
+                type: long
+              dt.synthetic.result.statistics.redirection_time:
+                type: long
+              dt.synthetic.result.statistics.tcp_connect_time:
+                type: long
+              dt.synthetic.result.statistics.time_to_first_byte:
+                type: long
+              dt.synthetic.result.statistics.tls_handshake_time:
+                type: long
+              dt.synthetic.result.statistics.response_status_code:
+                type: long
+              dt.synthetic.result.statistics.host_name_resolution_time:
+                type: long
+              dt.synthetic.result.statistics.peer_certificate_expiry_date:
+                type: long
+              dt.synthetic.result.statistics.response_body_size_limit_exceeded:
+                type: boolean
+            indexRange:
+              - 1
+              - 1
+        records:
+          - event.id: "100621641496"
+            timestamp: 2024-08-08T07:19:42.057000000Z
+            event.kind: SYNTHETIC_EVENT
+            event.type: http_monitor_execution
+            monitor_id: HTTP_CHECK-DE1ACC402750B64F
+            dt.synthetic.batch.id: "428964319797686325"
+            dt.synthetic.monitor.id: HTTP_CHECK-DE1ACC402750B64F
+            dt.synthetic.location.id: SYNTHETIC_LOCATION-0000000000000040
+            dt.synthetic.execution.type: on-demand
+            dt.synthetic.execution.stage: Executed
+            dt.synthetic.result.engine.id: "2048"
+            dt.synthetic.result.status.code: "0"
+            dt.synthetic.result.location.type: public
+            dt.synthetic.result.executed_steps: "1"
+            dt.synthetic.result.status.details: HEALTHY
+            dt.synthetic.result.status.message: SUCCESS
+            dt.synthetic.execution.end_timestamp: "1723101574360"
+            dt.synthetic.result.statistics.duration: "348"
+            dt.synthetic.execution.scheduling_timestamp: "1723101571592"
+            dt.synthetic.result.statistics.response_size: "1256"
+            dt.synthetic.result.status.on_demand.message: SUCCESS
+            dt.synthetic.result.statistics.redirects_count: "0"
+            dt.synthetic.result.statistics.start_timestamp: "1723101574012"
+            dt.synthetic.result.statistics.redirection_time: "0"
+            dt.synthetic.result.statistics.tcp_connect_time: "171"
+            dt.synthetic.result.statistics.time_to_first_byte: "348"
+            dt.synthetic.result.statistics.tls_handshake_time: "0"
+            dt.synthetic.result.statistics.response_status_code: "200"
+            dt.synthetic.result.statistics.host_name_resolution_time: "0"
+            dt.synthetic.result.statistics.peer_certificate_expiry_date: "0"
+            dt.synthetic.result.statistics.response_body_size_limit_exceeded: false
+          - event.id: "100621641497"
+            timestamp: 2024-08-08T07:19:42.058000000Z
+            event.kind: SYNTHETIC_EVENT
+            event.type: http_monitor_execution
+            monitor_id: HTTP_CHECK-3940B2D3CC872C10
+            dt.synthetic.batch.id: "428964319797686325"
+            dt.synthetic.monitor.id: HTTP_CHECK-3940B2D3CC872C10
+            dt.synthetic.location.id: SYNTHETIC_LOCATION-0000000000000040
+            dt.synthetic.execution.type: on-demand
+            dt.synthetic.execution.stage: Executed
+            dt.synthetic.result.engine.id: "2048"
+            dt.synthetic.result.status.code: "12013"
+            dt.synthetic.result.location.type: public
+            dt.synthetic.result.executed_steps: "1"
+            dt.synthetic.result.status.details: "fakesite342iu9.com: Name or service not known"
+            dt.synthetic.result.status.message: UNKNOWN_HOST
+            dt.synthetic.execution.end_timestamp: "1723101574780"
+            dt.synthetic.result.failed_step.name: fakesite342iu9.com
+            dt.synthetic.result.statistics.duration: "60"
+            dt.synthetic.execution.scheduling_timestamp: "1723101571592"
+            dt.synthetic.result.failed_step.sequence_id: "1"
+            dt.synthetic.result.statistics.response_size: "0"
+            dt.synthetic.result.status.on_demand.message: FAILED
+            dt.synthetic.result.statistics.redirects_count: "0"
+            dt.synthetic.result.statistics.start_timestamp: "1723101574720"
+            dt.synthetic.result.statistics.redirection_time: "0"
+            dt.synthetic.result.statistics.tcp_connect_time: "0"
+            dt.synthetic.result.statistics.time_to_first_byte: "0"
+            dt.synthetic.result.statistics.tls_handshake_time: "0"
+            dt.synthetic.result.statistics.response_status_code: "0"
+            dt.synthetic.result.statistics.host_name_resolution_time: "58"
+            dt.synthetic.result.statistics.peer_certificate_expiry_date: "0"
+            dt.synthetic.result.statistics.response_body_size_limit_exceeded: false
+        metadata:
+          grail:
+            query: |-
+              fetch dt.synthetic.events
+              | filter in(event.id, 100621641497,100621641496)
+              | filter event.type == "http_monitor_execution"
+              | fieldsAdd monitor_id=dt.synthetic.monitor.id
+            locale: und
+            queryId: 35421fb2-8190-4a1e-bb9e-a84ea547aced
+            sampled: false
+            timezone: Z
+            dqlVersion: V1_0
+            scannedBytes: 3874
+            notifications:
+              - message: "The parameters should be grouped with curly braces: {}."
+                severity: INFO
+                arguments: []
+                messageFormat: "The parameters should be grouped with curly braces: {}."
+                syntaxPosition:
+                  end:
+                    line: 2
+                    index: 72
+                    column: 47
+                  start:
+                    line: 2
+                    index: 48
+                    column: 23
+                notificationType: PARAMETERS_SHOULD_BE_GROUPED
+                messageFormatSpecifierTypes: []
+            canonicalQuery: |-
+              fetch dt.synthetic.events
+              | filter in(event.id, {100621641497, 100621641496})
+              | filter event.type == "http_monitor_execution"
+              | fieldsAdd monitor_id = dt.synthetic.monitor.id
+            scannedRecords: 8
+            analysisTimeframe:
+              end: 2024-08-08T07:20:12.299Z
+              start: 2024-08-08T05:20:12.299Z
+            scannedDataPoints: 0
+            executionTimeMilliseconds: 20
+      position:
+        x: 0
+        y: 2
+      predecessors:
+        - synthetic_for_workflows_1
+      conditions:
+        states:
+          synthetic_for_workflows_1: OK
+      retry:
+        count: 2
+        delay: 20
+        failedLoopIterationsOnly: true
+    synthetic_for_workflows_1:
+      name: synthetic_for_workflows_1
+      description: Trigger on-demand monitors in Workflows app
+      action: dynatrace.synthetic.workflow.action:synthetic-on-demand
+      input:
+        tags: []
+        location: SYNTHETIC_LOCATION-0000000000000040
+        metadata: []
+        monitors: '{{ event()["monitors"] }}'
+        tagsJinja: false
+        applications: []
+        locationJinja: false
+        monitorsJinja: false
+        stopOnProblem: true
+        failOnSslWarning: false
+        applicationsJinja: true
+        failOnPerformanceIssue: false
+        takeScreenshotsOnSuccess: false
+      customSampleResult:
+        user.id: adam.gardner@dynatrace.com
+        event.id: "7536345260528169178"
+        timestamp: 2024-08-07T07:35:53.604000000Z
+        event.kind: SYNTHETIC_EVENT
+        event.type: batch_status
+        dt.synthetic.source: UI
+        dt.synthetic.batch.status: Failed
+        dt.synthetic.result.duration: "601"
+        dt.synthetic.result.failed_count: "1"
+        dt.synthetic.triggered_executions:
+          - "100620198031"
+          - "100620198030"
+        dt.synthetic.result.executed_count: "2"
+        dt.synthetic.result.total_duration: "343"
+        dt.synthetic.result.triggered_count: "2"
+        dt.synthetic.configuration.processing_mode: STANDARD
+        dt.synthetic.failed_executions.0.monitor.id: HTTP_CHECK-3940B2D3CC872C10
+        dt.synthetic.result.failed_to_execute_count: "0"
+        dt.synthetic.failed_executions.0.location.id: SYNTHETIC_LOCATION-0000000000000040
+        dt.synthetic.failed_executions.0.status.code: "12013"
+        dt.synthetic.failed_executions.0.execution.id: "100620198031"
+        dt.synthetic.result.triggering_problems_count: "0"
+        dt.synthetic.configuration.fail_on_ssl_warning: false
+        dt.synthetic.failed_executions.0.status.details: "fakesite342iu9.com: Name or service not known"
+        dt.synthetic.failed_executions.0.status.message: UNKNOWN_HOST
+        dt.synthetic.failed_executions.0.execution.stage: Executed
+        dt.synthetic.configuration.fail_on_performance_issue: false
+        dt.synthetic.configuration.take_screenshot_on_success: false
+        dt.synthetic.failed_executions.0.execution.end_timestamp: "1723016138632"
+        dt.synthetic.failed_executions.0.status.on_demand.message: FAILED
+      position:
+        x: 0
+        y: 1
+      predecessors: []
+    email_notification_on_results:
+      name: email_notification_on_results
+      description: Send email
+      action: dynatrace.email:send-email
+      active: true
+      input:
+        cc: []
+        to:
+          - "{{ _.team.email }}"
+        bcc: []
+        taskId: "{{ task().id }}"
+        content: >+
+          A synthetic monitor just finished which you own.
+
+
+          {% for entity in _.team.entities %}
+              {% set synthetic_monitor = result("get_execution_details")["records"] | selectattr('monitor_id', 'equalto', entity) | first %}
+          	Monitor execution: {{ entity }} (link? > {{ environment()['url'] }}/snythetic/{{ entity }} )
+              Status: {{ synthetic_monitor['dt.synthetic.result.status.on_demand.message'] }}
+              Details: {{ synthetic_monitor['dt.synthetic.result.status.message'] }}: {{ synthetic_monitor['dt.synthetic.result.status.details'] }}
+          {% endfor %}
+
+        subject: Synthetic Monitor Result
+        executionId: "{{ execution().id }}"
+        environmentUrl: "{{ environment().url }}"
+      position:
+        x: 0
+        y: 4
+      predecessors:
+        - get_synthetic_owners
+      conditions:
+        states:
+          get_synthetic_owners: OK
+      concurrency: 3
+      withItems: team in {{ result("get_synthetic_owners")["email"] }}
+  description: ""
+  trigger:
+    eventTrigger:
+      filterQuery: |-
+        event.provider == "githubactions" and
+        event.type == "com.mycompany.synthetic.batch.triggered"
+      isActive: true
+      uniqueExpression: null
+      triggerConfiguration:
+        type: event
+        value:
+          query: |-
+            event.provider == "githubactions" and
+            event.type == "com.mycompany.synthetic.batch.triggered"
+          eventType: bizevents
+  schemaVersion: 3
