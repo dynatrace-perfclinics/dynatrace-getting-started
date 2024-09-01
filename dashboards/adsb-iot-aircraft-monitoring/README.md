@@ -1,4 +1,4 @@
-# OpenTelemetry and Dynatrace IoT Dashboards for Aircraft monitoring
+# IoT Dashboards for Aircraft monitoring using OpenTelemetry and Dynatrace 
 
 This repository contains all the JSON files for dashboards related to the blog [Leverage Edge IoT Data with OpenTelemetry and Dynatrace](https://www.dynatrace.com/news/blog/leverage-edge-iot-data-with-opentelemetry-and-dynatrace/). These dashboards are designed to help visualize and analyze aircraft data using OpenTelemetry and Dynatrace.
 
@@ -10,21 +10,20 @@ This repository contains all the JSON files for dashboards related to the blog [
 
 Below are the screenshots of the dashboard tiles and dashboards included in this repository:
 
-### Altitude of the Aircraft Tile
-![Altitude of the Aircraft Tile](06-Altitiude-of-the-aircraft-tile.png)
+1. **Altitude of the Aircraft Tile**  
+   ![Altitude of the Aircraft Tile](screenshots/06-Altitiude-of-the-aircraft-tile.png)
 
-### Breakdown of Aircraft Categories
-![Breakdown of Aircraft Categories](07-Breakdown-of-Aircraft-Categories.png)
+2. **Breakdown of Aircraft Categories**  
+   ![Breakdown of Aircraft Categories](screenshots/07-Breakdown-of-Aircraft-Categories.png)
 
-### Flight Count
-![Flight Count](08-flight-count.png)
+3. **Flight Count**  
+   ![Flight Count](screenshots/08-flight-count.png)
 
-### Flight Stats
-![Flights Stats](09-Flights-stats-1.png)
+4. **Flights Stats**  
+   ![Flights Stats](screenshots/09-Flights-stats-1.png)
 
-### Flight Analysis with Distance
-![Flight Analysis with Distance](10-flight-analysis-with-distance.png)
-
+5. **Flight Analysis with Distance**  
+   ![Flight Analysis with Distance](screenshots/10-flight-analysis-with-distance.png)
 
 ## How to Use
 
@@ -33,6 +32,8 @@ Below are the screenshots of the dashboard tiles and dashboards included in this
 3. Import the JSON files into your Dynatrace environment.
 4. Customize the dashboards as needed to suit your monitoring requirements.
 
+NB: Use the Notebook to see the query and results without setting up any hardware or configuration. Do not `run` the Notebook as you it will try to fetch fresh data which you may not have.
+
 For more details on setting up and using these dashboards, please refer to the blog post linked above.
 
 Feel free to contribute to this repository by adding more dashboards or suggesting improvements!
@@ -40,5 +41,5 @@ Feel free to contribute to this repository by adding more dashboards or suggesti
 
 ## Additional Resources
 
-This repository also contains a Dynatrace Notebook `Notebook-Flight_Stats.json` that provides additional analytics on flight data. The output of the Notebook is available in `Notebook-PrintView.pdf`
+This repository also contains a Dynatrace Notebook `Notebook-Flight_Stats.json` that provides additional analytics on flight data. The output of the Notebook is available in [`Notebook-PrintView.pdf`](screenshots/Notebook-PrintView.pdf)
 
