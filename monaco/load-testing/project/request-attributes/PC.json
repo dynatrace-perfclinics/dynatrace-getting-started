@@ -1,0 +1,26 @@
+{
+  "aggregation": "FIRST",
+  "confidential": false,
+  "dataSources": [
+    {
+      "capturingAndStorageLocation": "CAPTURE_AND_STORE_ON_SERVER",
+      "enabled": true,
+      "parameterName": "x-dynatrace-test",
+      "source": "REQUEST_HEADER",
+      "valueProcessing": {
+        "extractSubstring": {
+          "delimiter": "PC=",
+          "endDelimiter": ";",
+          "position": "BETWEEN"
+        },
+        "splitAt": "",
+        "trim": false
+      }
+    }
+  ],
+  "dataType": "STRING",
+  "enabled": true,
+  "name": "{{.name}}",
+  "normalization": "ORIGINAL",
+  "skipPersonalDataMasking": false
+}
