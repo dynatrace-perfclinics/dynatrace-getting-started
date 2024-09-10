@@ -1,0 +1,13 @@
+manifestVersion: "1.0"
+projects:
+- name: project
+environmentGroups:
+- name: default
+  environments:
+  - name: project
+    url:
+      value: https://abc12345.live.dynatrace.com
+    auth:
+      token:
+        type: environment
+        name: API_TOKEN
