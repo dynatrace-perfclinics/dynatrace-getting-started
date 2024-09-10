@@ -1,8 +1,8 @@
 # Load Testing
 
-Capture and parse the `x-dynatrace-test` header to 
+Capture and parse the `x-dynatrace-test` header to gather information from load testing tools.
 
-See this page for more information.
+See [this page](https://docs.dynatrace.com/docs/platform-modules/automations/cloud-automation/test-automation) for more information.
 
 | Header Value | Description |
 |-----|------|
