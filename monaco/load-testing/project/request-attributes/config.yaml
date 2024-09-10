@@ -1,0 +1,43 @@
+configs:
+- id: PC
+  config:
+    name: PC
+    template: PC.json
+    skip: false
+  type:
+    api: request-attributes
+- id: LSN
+  config:
+    name: LSN
+    template: LSN.json
+    skip: false
+  type:
+    api: request-attributes
+- id: SI
+  config:
+    name: SI
+    template: SI.json
+    skip: false
+  type:
+    api: request-attributes
+- id: TSN
+  config:
+    name: TSN
+    template: TSN.json
+    skip: false
+  type:
+    api: request-attributes
+- id: LTN
+  config:
+    name: LTN
+    template: LTN.json
+    skip: false
+  type:
+    api: request-attributes
+- id: VU
+  config:
+    name: VU
+    template: VU.json
+    skip: false
+  type:
+    api: request-attributes
