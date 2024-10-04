@@ -2,7 +2,7 @@
 
 Build trust in your platform by quickly achieving Crossplane observability with our step-by-step instructions and sample dashboard.
 
-This was inspired by the talk [Crossplane Observability at KubeCon 2024](https://www.linkedin.com/posts/grabnerandi_observability-crossplane-kubecon-activity-7186289956489744384-AUzV?utm_source=share&utm_medium=member_desktop).
+This was inspired by the talk [Crossplane Observability at KubeCon 2024](https://www.youtube.com/watch?v=R2NBPX2x9n4).
 
 ## Get Started
 
@@ -191,7 +191,7 @@ Crossplane and its providers expose a variety of metrics. For a detailed list of
 
 ## Use Our Sample Dashboard to Get Started
 
-To assist you in getting started with building a Crossplane dashboard, we have created a sample dashboard. Feel free to [download its JSON definition](https://github.com/dynatrace-perfclinics/community-tips-tricks/blob/main/ep20/crossplane-dashboard.json) and import it to your tenant to get started.
+To assist you in getting started with building a Crossplane dashboard, we have created a sample dashboard. Feel free to [download its JSON definition](../dashboards/crossplane/crossplane-for-platform-engineers.json) and import it to your tenant to get started.
 
 ![](https://raw.githubusercontent.com/dynatrace-perfclinics/dynatrace-getting-started/main/images/dashboard_crossplane_for_platform_engineers.png)
 
