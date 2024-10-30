@@ -1,11 +1,11 @@
 {
-    "version": 15,
+    "version": 17,
     "variables": [
         {
             "key": "Product",
             "type": "query",
             "visible": true,
-            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| fields event.provider",
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type == \"CONTAINER_IMAGE\"\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(event.provider)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
             "multiple": true,
             "defaultValue": [
                 "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
@@ -15,7 +15,7 @@
             "key": "Registry",
             "type": "query",
             "visible": true,
-            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| fields container_image.registry",
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type == \"CONTAINER_IMAGE\"\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.registry)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
             "multiple": true,
             "defaultValue": [
                 "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
@@ -25,7 +25,7 @@
             "key": "Repository",
             "type": "query",
             "visible": true,
-            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| fields container_image.repository",
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type == \"CONTAINER_IMAGE\"\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.repository)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
             "multiple": true,
             "defaultValue": [
                 "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
@@ -35,7 +35,27 @@
             "key": "Tag",
             "type": "query",
             "visible": true,
-            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| summarize values = arrayRemoveNulls(collectDistinct(container_image.tags, expand:true))",
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type == \"CONTAINER_IMAGE\"\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.tags, expand:true)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "RuntimeStatus",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name,\n         container_image.registry, container_image.repository, container_image.tags}, sort: {timestamp desc}\n// dashboard variables\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(containerStatus)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "ProductStage",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(releasesStage)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
             "multiple": true,
             "defaultValue": [
                 "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
@@ -46,7 +66,7 @@
         "0": {
             "type": "data",
             "title": "Most recent container image scan events",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n// unique fields\n| dedup {object.id}, sort: {timestamp desc}\n// variable fields\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| sort {timestamp, direction:\"descending\"}\n// fields to be displayed\n| fields  `Ingest time`=timestamp, `Scanning product`=event.provider, \n          Registry=container_image.registry, Repository=container_image.repository,\n          Tags=container_image.tags, `Container image`=container_image.digest\n| limit 50",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n// unique fields\n| dedup {object.id}, sort: {timestamp desc}\n// variable fields\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| sort {timestamp, direction:\"descending\"}\n// fields to be displayed\n| fields  `Ingest time`=timestamp, `Scanning product`=event.provider, \n          Registry=container_image.registry, Repository=container_image.repository,\n          Tags=container_image.tags, `Container image`=container_image.digest\n| limit 50",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -102,9 +122,14 @@
                     },
                     "categoryOverrides": {},
                     "categoricalBarChartSettings": {
-                        "categoryAxisLabel": "Scanning product",
+                        "categoryAxisLabel": "Scanning product,Registry,Repository,Affected object",
                         "valueAxisLabel": "",
-                        "categoryAxis": "Scanning product",
+                        "categoryAxis": [
+                            "Scanning product",
+                            "Registry",
+                            "Repository",
+                            "Affected object"
+                        ],
                         "valueAxis": [],
                         "tooltipVariant": "single"
                     },
@@ -118,7 +143,11 @@
                     "recordField": "timestamp",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -153,13 +182,19 @@
                         "Scanning product",
                         "Registry",
                         "Repository",
-                        "Container image"
+                        "Affected object"
                     ],
                     "colorMode": "color-palette",
                     "colorPalette": "categorical"
                 },
                 "histogram": {
-                    "dataMappings": []
+                    "dataMappings": [],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Scanning product",
+                        "Registry",
+                        "Repository"
+                    ]
                 }
             },
             "querySettings": {
@@ -178,7 +213,7 @@
         "4": {
             "type": "data",
             "title": "Container image coverage by product",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {event.provider, object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {images=countDistinctExact(container_image.digest)}, by: {event.provider}\n| sort images desc",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {event.provider, object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {images=countDistinctExact(container_image.digest)}, by: {event.provider}\n| sort images desc",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -219,7 +254,11 @@
                     "recordField": "container_image.registry",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -246,6 +285,10 @@
                             "valueAxis": "images",
                             "rangeAxis": ""
                         }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "event.provider"
                     ]
                 }
             },
@@ -260,7 +303,7 @@
         "11": {
             "type": "data",
             "title": "Registries",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {registries=countDistinctExact(container_image.registry)}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {registries=countDistinctExact(container_image.registry)}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -297,7 +340,11 @@
                     "recordField": "registries",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -308,12 +355,8 @@
                 },
                 "honeycomb": {
                     "shape": "square",
-                    "dataMappings": {
-                        "value": "registries"
-                    },
-                    "displayedFields": [
-                        null
-                    ],
+                    "dataMappings": {},
+                    "displayedFields": [],
                     "legend": {
                         "hidden": false,
                         "position": "auto"
@@ -327,7 +370,9 @@
                             "valueAxis": "registries",
                             "rangeAxis": ""
                         }
-                    ]
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
                 }
             },
             "querySettings": {
@@ -341,7 +386,7 @@
         "12": {
             "type": "data",
             "title": "Container repositories",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {artifacts=countDistinctExact(container_image.repository)}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {artifacts=countDistinctExact(container_image.repository)}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -378,7 +423,11 @@
                     "recordField": "artifacts",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -389,12 +438,8 @@
                 },
                 "honeycomb": {
                     "shape": "square",
-                    "dataMappings": {
-                        "value": "artifacts"
-                    },
-                    "displayedFields": [
-                        null
-                    ],
+                    "dataMappings": {},
+                    "displayedFields": [],
                     "legend": {
                         "hidden": false,
                         "position": "auto"
@@ -408,7 +453,9 @@
                             "valueAxis": "artifacts",
                             "rangeAxis": ""
                         }
-                    ]
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
                 }
             },
             "querySettings": {
@@ -422,7 +469,7 @@
         "13": {
             "type": "data",
             "title": "Container images",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {artifacts=countDistinctExact(container_image.digest)}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {artifacts=countDistinctExact(container_image.digest)}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -459,7 +506,11 @@
                     "recordField": "artifacts",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -470,12 +521,8 @@
                 },
                 "honeycomb": {
                     "shape": "square",
-                    "dataMappings": {
-                        "value": "artifacts"
-                    },
-                    "displayedFields": [
-                        null
-                    ],
+                    "dataMappings": {},
+                    "displayedFields": [],
                     "legend": {
                         "hidden": false,
                         "position": "auto"
@@ -489,7 +536,9 @@
                             "valueAxis": "artifacts",
                             "rangeAxis": ""
                         }
-                    ]
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
                 }
             },
             "querySettings": {
@@ -503,7 +552,7 @@
         "14": {
             "type": "data",
             "title": "Scanning products",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {products=countDistinctExact(event.provider)}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| dedup {object.id}, sort: {timestamp desc}\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {products=countDistinctExact(event.provider)}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -540,7 +589,11 @@
                     "recordField": "products",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -551,12 +604,8 @@
                 },
                 "honeycomb": {
                     "shape": "square",
-                    "dataMappings": {
-                        "value": "products"
-                    },
-                    "displayedFields": [
-                        null
-                    ],
+                    "dataMappings": {},
+                    "displayedFields": [],
                     "legend": {
                         "hidden": false,
                         "position": "auto"
@@ -570,7 +619,9 @@
                             "valueAxis": "products",
                             "rangeAxis": ""
                         }
-                    ]
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
                 }
             },
             "querySettings": {
@@ -589,7 +640,7 @@
         "16": {
             "type": "data",
             "title": "Scan events over time by product",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| makeTimeseries count(), time:{timestamp}, interval:1d, by:{event.provider}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| makeTimeseries count(), time:{timestamp}, interval: 24h, by:{event.provider}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -611,7 +662,9 @@
                     "categoricalBarChartSettings": {
                         "categoryAxisLabel": "event.provider",
                         "valueAxisLabel": "interval",
-                        "categoryAxis": "event.provider",
+                        "categoryAxis": [
+                            "event.provider"
+                        ],
                         "valueAxis": [
                             "interval"
                         ],
@@ -630,7 +683,8 @@
                     "leftYAxisSettings": {
                         "scale": "linear"
                     },
-                    "truncationMode": "middle"
+                    "truncationMode": "middle",
+                    "valueRepresentation": "absolute"
                 },
                 "singleValue": {
                     "showLabel": true,
@@ -639,7 +693,11 @@
                     "recordField": "timestamp",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -682,8 +740,13 @@
                             "valueAxis": "interval",
                             "rangeAxis": ""
                         }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "event.provider"
                     ]
-                }
+                },
+                "autoSelectVisualization": false
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -696,7 +759,7 @@
         "17": {
             "type": "data",
             "title": "Total scan events",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {scanEvents=count()}",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize the events\n| summarize {scanEvents=count()}",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -733,7 +796,11 @@
                     "recordField": "scanEvents",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -763,7 +830,9 @@
                             "valueAxis": "scanEvents",
                             "rangeAxis": ""
                         }
-                    ]
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
                 }
             },
             "querySettings": {
@@ -777,7 +846,7 @@
         "18": {
             "type": "data",
             "title": "Repository coverage based on products and number of scans",
-            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n// variable fields\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n| summarize {`Scan events`=count(), \n             `Scanning products`=collectDistinct(event.provider)}, \n  by:{\n    Repository=container_image.repository, \n    Tags=container_image.tags}\n| sort `Scan events` desc\n| limit 50",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n  AND event.type == \"VULNERABILITY_SCAN\"\n  AND object.type==\"CONTAINER_IMAGE\"\n// variable fields\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| parse containerStatus, \"\"\"LD* \"state=\" LD:containerStatus (\"}\" | \",\")\"\"\"\n| fieldsAdd containerStatus=if(isNull(containerStatus),\"not running\",else:containerStatus)\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(containerStatus, $RuntimeStatus) AND in(releasesStage,$ProductStage)\n// summarize findings\n| summarize {`Scan events`=count(), \n             `Scanning products`=collectDistinct(event.provider)}, \n  by:{\n    Repository=container_image.repository, \n    Tags=container_image.tags}\n| sort `Scan events` desc\n| limit 50",
             "davis": {
                 "enabled": false,
                 "davisVisualization": {
@@ -851,7 +920,11 @@
                     "recordField": "timestamp",
                     "autoscale": true,
                     "alignment": "center",
-                    "colorThresholdTarget": "value"
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
                 },
                 "table": {
                     "rowDensity": "condensed",
@@ -894,6 +967,10 @@
                             "valueAxis": "Scan events",
                             "rangeAxis": ""
                         }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Repository"
                     ]
                 }
             },
@@ -904,12 +981,17 @@
                 "defaultSamplingRatio": 10,
                 "enableSampling": false
             }
+        },
+        "19": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Most recent container image scan events\n----"
         }
     },
     "layouts": {
         "0": {
             "x": 0,
-            "y": 20,
+            "y": 21,
             "w": 24,
             "h": 13
         },
@@ -972,7 +1054,22 @@
             "y": 8,
             "w": 11,
             "h": 12
+        },
+        "19": {
+            "x": 0,
+            "y": 20,
+            "w": 24,
+            "h": 1
         }
     },
-    "importedWithCode": false
+    "importedWithCode": false,
+    "settings": {
+        "defaultTimeframe": {
+            "value": {
+                "from": "now()-7d",
+                "to": "now()"
+            },
+            "enabled": true
+        }
+    }
 }
