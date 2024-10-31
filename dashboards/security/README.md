@@ -28,7 +28,7 @@ For more information about how security reporting, refer to [Security data analy
 
 ![Container scan events coverage](/images/dashboard_security_container_scan_events_coverage.png)
 
-**Container image alert reduction** - This report template provides an overview of vulnerable container images and the status of these container images in running containers and for containers running in a production environment.
+**Container image alert reduction** - This report template provides an overview for runtime contextualization of container findings for alert reduction.
 [Download](/dashboards/security/Container%20image%20alert%20reduction.json) this dashboard and import it in your Dynatrace environment
 
 ![Container image alert reduction](/images/dashboard_security_container_image_alert_reduction.png)
