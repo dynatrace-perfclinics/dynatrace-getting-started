@@ -1,0 +1,3125 @@
+{
+    "version": 16,
+    "variables": [
+        {
+            "key": "Product",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(event.provider)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "Registry",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.registry)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "Repository",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.repository)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "Tag",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(container_image.tags, expand:true)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "RiskLevel",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup dt.security.risk.level\n| fieldsAdd orderHelper = if(dt.security.risk.level == \"CRITICAL\", 1, else: \nif(dt.security.risk.level == \"HIGH\", 2, else: \n  if(dt.security.risk.level == \"MEDIUM\", 3, else: \n    if(dt.security.risk.level == \"LOW\", 4, else: \n      if(dt.security.risk.level == \"NONE\", 5, else: \n        if(dt.security.risk.level == \"NOT_AVAILABLE\", 6)\n)))))\n| sort orderHelper asc\n| summarize rawValues = arrayRemoveNulls(collectDistinct(dt.security.risk.level))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "Vulnerability",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(vulnerability.id)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "Component",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(component.name)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "ProductStage",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.kind == \"SECURITY_EVENT\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n| filter isNotNull(container_instance.id) AND contains(containerStatus, \"running\")\n| fieldsAdd releasesStage = if(isNull(releasesStage), \"None\", else:releasesStage)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(releasesStage)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else: \"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        }
+    ],
+    "tiles": {
+        "1": {
+            "type": "markdown",
+            "title": "",
+            "content": "# Runtime contextualization of container findings for alert reduction\nReduce noise from container vulnerability findings using runtime context. Learn more about [Security events ingest](https://dt-url.net/1d63p0v)."
+        },
+        "2": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| summarize {\n    `Risk score`=toDouble(takeMax(dt.security.risk.score)),\n    `Last finding`=takeMax(timestamp),\n    `Container images`=countDistinctExact(container_image.digest)\n    }, \n    by:{Vulnerability=vulnerability.id, `Risk level`=dt.security.risk.level}\n| sort {`Risk score`, direction:\"descending\"}, {`Container images`, direction:\"descending\"}\n| fields `Risk level`, Vulnerability, `Container images`\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Risk level,Vulnerability",
+                        "valueAxisLabel": "Container images",
+                        "categoryAxis": [
+                            "Risk level",
+                            "Vulnerability"
+                        ],
+                        "valueAxis": [
+                            "Container images"
+                        ],
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Container images"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Risk level",
+                        "Vulnerability"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Container images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Risk level",
+                        "Vulnerability"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "5": {
+            "type": "data",
+            "title": "Critical risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"CRITICAL\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxisLabel": "numberOfVulnerabilities"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto",
+                        "scale": "linear"
+                    },
+                    "hiddenLegendFields": [],
+                    "legend": {
+                        "hidden": true
+                    },
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isVisible": false,
+                        "isRelative": false,
+                        "trendType": "auto"
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {},
+                    "sortBy": {
+                        "columnId": "[\"scandate\"]",
+                        "direction": "descending"
+                    }
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "criticals",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193663126
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "6": {
+            "type": "data",
+            "title": "High risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"HIGH\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "10": {
+            "type": "data",
+            "title": "Number of vulnerabilities by risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| summarize {\n    numberOfVulnerabilities = countDistinctExact(vulnerability.id),\n    riskScore=takeMax(dt.security.risk.score)}, by:{dt.security.risk.level}\n| sort riskScore desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "donutChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "number-of-slices",
+                        "groupingThresholdValue": 3,
+                        "valueType": "absolute",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {
+                        "NOT_AVAILABLE": {
+                            "color": "var(--dt-colors-charts-logstatus-none-default, #2c2f3f)",
+                            "added": 1713354177614
+                        },
+                        "NONE": {
+                            "color": "var(--dt-colors-charts-categorical-color-05-default, #84859a)",
+                            "added": 1718981822129
+                        }
+                    },
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": [
+                            "dt.security.risk.level"
+                        ],
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxis": [
+                            "numberOfVulnerabilities",
+                            "riskScore"
+                        ],
+                        "valueAxisLabel": "numberOfVulnerabilities,riskScore",
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "colorPalette": "security-risk-level",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "container_image.registry",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "numberOfVulnerabilities"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "dt.security.risk.level"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "numberOfVulnerabilities",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "riskScore",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "dt.security.risk.level"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "16": {
+            "type": "markdown",
+            "title": "",
+            "content": "____\n## Affecting running containers\n---"
+        },
+        "19": {
+            "type": "markdown",
+            "title": "",
+            "content": "----\n## Vulnerabilities in container images\n---"
+        },
+        "20": {
+            "type": "data",
+            "title": "Medium risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"MEDIUM\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-06-default, #a9780f)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "21": {
+            "type": "data",
+            "title": "Percentage of vulnerabilities by funnel stage",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, containerStatus}\n// summarize and filter\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| fieldsAdd types=if(isNotNull(container_instance.id) AND in(releasesStage,$ProductStage),\n                     array(\"All\",\"Running\",\"Running (prod)\"),\n              else:if(isNotNull(container_instance.id) AND contains(containerStatus, \"running\"), \n                     array(\"All\",\"Running\"),\n              else:array(\"All\")))\n| expand type=types\n| summarize Vulnerabilities=countDistinctExact(vulnerability.id), by:{`Funnel stage`=type}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "categoricalBarChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Funnel stage",
+                        "valueAxisLabel": "Vulnerabilities",
+                        "categoryAxis": [
+                            "Funnel stage"
+                        ],
+                        "valueAxis": [
+                            "Vulnerabilities"
+                        ],
+                        "scale": "relative",
+                        "categoryAxisTickLayout": "horizontal",
+                        "tooltipVariant": "single",
+                        "layout": "vertical"
+                    },
+                    "hiddenLegendFields": [],
+                    "leftYAxisSettings": {
+                        "scale": "linear"
+                    },
+                    "valueRepresentation": "absolute",
+                    "legend": {
+                        "hidden": true
+                    },
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "timestamp",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "Repository"
+                        ]
+                    ],
+                    "columnWidths": {
+                        "[\"event.provider\"]": 187.3975830078125,
+                        "[\"object.id\"]": 574.390625,
+                        "[\"container_image.registry\"]": 230.46875,
+                        "[\"container_image.repository\"]": 269.65625,
+                        "[\"container_image.tag\"]": 208.75,
+                        "[\"timestamp\"]": 170.96875,
+                        "[\"critical\"]": 113.125,
+                        "[\"high\"]": 97.78125,
+                        "[\"vulnerabilities\"]": 176,
+                        "[\"Id\"]": 211.38751220703125,
+                        "[\"Repository\"]": 264.375
+                    }
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Vulnerabilities"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Funnel stage"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Funnel stage"
+                    ]
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": null,
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 2,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1721226654873
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "25": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Vulnerabilities in repositories\n____\n"
+        },
+        "27": {
+            "type": "markdown",
+            "title": "",
+            "content": "____\n## Affecting production containers\n---"
+        },
+        "28": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Top 10 vulnerabilities\n"
+        },
+        "30": {
+            "type": "data",
+            "title": "Critical risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"CRITICAL\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxisLabel": "numberOfVulnerabilities"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto",
+                        "scale": "linear"
+                    },
+                    "hiddenLegendFields": [],
+                    "legend": {
+                        "hidden": true
+                    },
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isVisible": false,
+                        "isRelative": false,
+                        "trendType": "auto"
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {},
+                    "sortBy": {
+                        "columnId": "[\"scandate\"]",
+                        "direction": "descending"
+                    }
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "criticals",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193663126
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "31": {
+            "type": "data",
+            "title": "High risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"HIGH\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "32": {
+            "type": "data",
+            "title": "Medium risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"MEDIUM\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-06-default, #a9780f)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "34": {
+            "type": "data",
+            "title": "Number of vulnerabilities by risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| summarize {\n    numberOfVulnerabilities = countDistinctExact(vulnerability.id),\n    riskScore=takeMax(dt.security.risk.score)}, by:{dt.security.risk.level}\n| sort riskScore desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "donutChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "number-of-slices",
+                        "groupingThresholdValue": 3,
+                        "valueType": "absolute",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {
+                        "NOT_AVAILABLE": {
+                            "color": "var(--dt-colors-charts-logstatus-none-default, #2c2f3f)",
+                            "added": 1713354177614
+                        },
+                        "NONE": {
+                            "color": "var(--dt-colors-charts-categorical-color-05-default, #84859a)",
+                            "added": 1718981822129
+                        }
+                    },
+                    "categoricalBarChartSettings": {
+                        "categoryAxis": [
+                            "dt.security.risk.level"
+                        ],
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxis": [
+                            "numberOfVulnerabilities",
+                            "riskScore"
+                        ],
+                        "valueAxisLabel": "numberOfVulnerabilities,riskScore",
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "colorPalette": "security-risk-level",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "container_image.registry",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "numberOfVulnerabilities"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "dt.security.risk.level"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "numberOfVulnerabilities",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "riskScore",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "dt.security.risk.level"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "35": {
+            "type": "data",
+            "title": "Critical risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"CRITICAL\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxisLabel": "numberOfVulnerabilities"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto",
+                        "scale": "linear"
+                    },
+                    "hiddenLegendFields": [],
+                    "legend": {
+                        "hidden": true
+                    },
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isVisible": false,
+                        "isRelative": false,
+                        "trendType": "auto"
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {},
+                    "sortBy": {
+                        "columnId": "[\"scandate\"]",
+                        "direction": "descending"
+                    }
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "criticals",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193663126
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "36": {
+            "type": "data",
+            "title": "Medium risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"MEDIUM\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-06-default, #a9780f)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "37": {
+            "type": "data",
+            "title": "High risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| filter dt.security.risk.level==\"HIGH\"\n| summarize {Vulnerabilities=countDistinctExact(vulnerability.id)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Vulnerabilities",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "≥",
+                                "label": "",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "scandate",
+                        "valueAxisLabel": "highs"
+                    },
+                    "leftYAxisSettings": {
+                        "max": "auto"
+                    },
+                    "hiddenLegendFields": [],
+                    "seriesOverrides": [
+                        {
+                            "seriesId": [
+                                "findings"
+                            ],
+                            "override": {
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                }
+                            }
+                        }
+                    ],
+                    "legend": {
+                        "hidden": true
+                    }
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerabilities",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "isInverseTrend": true,
+                        "isRelative": false,
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Vulnerabilities",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                },
+                "unitsOverrides": [
+                    {
+                        "identifier": "highs",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1713193676655
+                    }
+                ]
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "39": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Vulnerabilities in running containers\n____\n"
+        },
+        "40": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| dedup {object.id, vulnerability.id, component.name,\n         container_image.registry, container_image.repository, container_image.tags}, sort: {timestamp desc}\n| summarize {\n    `Risk score`=toDouble(takeMax(dt.security.risk.score)),\n    `Last finding`=takeMax(timestamp),\n    `Container images`=countDistinctExact(container_image.digest)\n    }, \n    by:{Vulnerability=vulnerability.id, `Risk level`=dt.security.risk.level}\n| sort {`Risk score`, direction:\"descending\"}, {`Container images`, direction:\"descending\"}\n| fields `Risk level`, Vulnerability, `Container images`\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Risk level,Vulnerability",
+                        "valueAxisLabel": "Container images",
+                        "categoryAxis": [
+                            "Risk level",
+                            "Vulnerability"
+                        ],
+                        "valueAxis": [
+                            "Container images"
+                        ],
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Container images"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Risk level",
+                        "Vulnerability"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Container images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Risk level",
+                        "Vulnerability"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "41": {
+            "type": "data",
+            "title": "Number of vulnerabilities by risk",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| summarize {\n    numberOfVulnerabilities = countDistinctExact(vulnerability.id),\n    riskScore=takeMax(dt.security.risk.score)}, by:{dt.security.risk.level}\n| sort riskScore desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "donutChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "number-of-slices",
+                        "groupingThresholdValue": 3,
+                        "valueType": "absolute",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {
+                        "NOT_AVAILABLE": {
+                            "color": "var(--dt-colors-charts-logstatus-none-default, #2c2f3f)",
+                            "added": 1713354177614
+                        },
+                        "NONE": {
+                            "color": "var(--dt-colors-charts-categorical-color-05-default, #84859a)",
+                            "added": 1718981822129
+                        }
+                    },
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "dt.security.risk.level",
+                        "valueAxisLabel": "numberOfVulnerabilities",
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "colorPalette": "security-risk-level",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "container_image.registry",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "42": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Vulnerabilities in production containers\n____\n"
+        },
+        "43": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| dedup {object.id, vulnerability.id, component.name,\n         container_image.registry, container_image.repository, container_image.tags}, sort: {timestamp desc}\n| summarize {\n    `Risk score`=toDouble(takeMax(dt.security.risk.score)),\n    `Last finding`=takeMax(timestamp),\n    `Container images`=countDistinctExact(container_image.digest)\n    }, \n    by:{Vulnerability=vulnerability.id, `Risk level`=dt.security.risk.level}\n| sort {`Risk score`, direction:\"descending\"}, {`Container images`, direction:\"descending\"}\n| fields `Risk level`, Vulnerability, `Container images`\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Risk level",
+                        "valueAxisLabel": "Container images",
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "44": {
+            "type": "markdown",
+            "title": "",
+            "content": "![](https://dt-cdn.net/images/triangle-funnel-492-2bbd7aab8c.png)"
+        },
+        "45": {
+            "type": "markdown",
+            "title": "",
+            "content": "![](https://dt-cdn.net/images/triangle-funnel-492-2bbd7aab8c.png)"
+        },
+        "46": {
+            "type": "markdown",
+            "title": "",
+            "content": " "
+        },
+        "47": {
+            "type": "markdown",
+            "title": "",
+            "content": " "
+        },
+        "48": {
+            "type": "markdown",
+            "title": "",
+            "content": " "
+        },
+        "49": {
+            "type": "data",
+            "title": "Container images in registries",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| summarize {images=countDistinctExact(container_image.digest)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "ContainerIcon",
+                    "recordField": "images",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue",
+                    "dataMappings": {},
+                    "displayedFields": []
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "50": {
+            "type": "data",
+            "title": "Container images in runtime",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| summarize {images=countDistinctExact(container_image.digest)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "ContainerIcon",
+                    "recordField": "images",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue",
+                    "dataMappings": {},
+                    "displayedFields": []
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "51": {
+            "type": "data",
+            "title": "Container images in production",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| summarize {images=countDistinctExact(container_image.digest)}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "",
+                    "prefixIcon": "ContainerIcon",
+                    "recordField": "images",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue",
+                    "dataMappings": {},
+                    "displayedFields": []
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "52": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Top 10 container repositories\n"
+        },
+        "53": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Repositories with production containers\n____\n"
+        },
+        "54": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Repositories with running containers\n____\n"
+        },
+        "55": {
+            "type": "markdown",
+            "title": "",
+            "content": "##### Scanned repositories\n____\n"
+        },
+        "56": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, containerStatus, processes=contains[dt.entity.process_group_instance]\n    | expand dt.entity.process=processes\n        | fieldsRemove processes\n        | join [\n            fetch dt.entity.process_group_instance, from:now()-3h\n        ], on:{left[dt.entity.process]==right[id]}, kind:leftOuter, fields:{releasesProduct, releasesStage}\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, container_image.name=containerImageName,\n           releasesProduct, releasesStage, container_instance.status=containerStatus}\n// filter for those that have running instances in production\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n| fieldsAdd releasesStage=if(isNull(releasesStage), \"None\", else:releasesStage)\n| filter in(releasesStage,$ProductStage)\n// aggregation and custom filtering\n| dedup {object.id, vulnerability.id, component.name,\n         container_image.registry, container_image.repository, container_image.tags}, sort: {timestamp desc}\n| summarize {\n        Critical=countIf(dt.security.risk.level==\"CRITICAL\"),\n        High=countIf(dt.security.risk.level==\"HIGH\"),\n        `Container images`=countDistinctExact(container_image.digest)\n}, by:{Repository=container_image.repository}\n| sort {Critical, direction:\"descending\"}, {High, direction:\"descending\"},\n       {`Container images`, direction:\"descending\"}\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Repository",
+                        "valueAxisLabel": "Critical",
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {},
+                    "legend": "auto",
+                    "displayedFields": [],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [],
+                    "variant": "single",
+                    "displayedFields": []
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "57": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// now enrich the runtime context\n| join [\n    fetch dt.entity.container_group_instance, from:now()-3h\n    | fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName\n], on:{left[container_image.digest]==right[containerImageDigest]}, kind:leftOuter,\n   fields:{container_instance.id=id, container_instance.name=entity.name, \n           container_image.name=containerImageName, container_instance.status=containerStatus}\n// filter for those that have running instances\n| filter isNotNull(container_instance.id) AND contains(container_instance.status, \"running\")\n// aggregation and custom filtering\n| dedup {object.id, vulnerability.id, component.name,\n         container_image.registry, container_image.repository, container_image.tags}, sort: {timestamp desc}\n| summarize {\n        Critical=countIf(dt.security.risk.level==\"CRITICAL\"),\n        High=countIf(dt.security.risk.level==\"HIGH\"),\n        `Container images`=countDistinctExact(container_image.digest)\n}, by:{Repository=container_image.repository}\n| sort {Critical, direction:\"descending\"}, {High, direction:\"descending\"},\n       {`Container images`, direction:\"descending\"}\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Repository",
+                        "valueAxisLabel": "Critical,High,Container images",
+                        "categoryAxis": [
+                            "Repository"
+                        ],
+                        "valueAxis": [
+                            "Critical",
+                            "High",
+                            "Container images"
+                        ],
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Critical"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Repository"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Critical",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "High",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Container images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Repository"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "58": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n// data access\n| filter dt.system.bucket == \"default_security_custom_events\"\n     AND event.type == \"VULNERABILITY_FINDING\"\n     AND object.type == \"CONTAINER_IMAGE\"\n     AND isNotNull(component.name)\n| dedup {object.id, vulnerability.id, component.name, component.version,\n         container_image.registry, container_image.repository}, sort: {timestamp desc}\n// dashboard variables\n| filter in(event.provider, $Product)\n     AND in(container_image.registry, $Registry)\n     AND in(container_image.repository, $Repository)\n     AND iAny(in(container_image.tags[], $Tag))\n     AND in(dt.security.risk.level, $RiskLevel)\n     AND in(vulnerability.id, $Vulnerability)\n     AND in(component.name, $Component)\n// aggregation and custom filtering\n| summarize {\n        Critical=countIf(dt.security.risk.level==\"CRITICAL\"),\n        High=countIf(dt.security.risk.level==\"HIGH\"),\n        `Container images`=countDistinctExact(container_image.digest)\n}, by:{Repository=container_image.repository}\n| sort {Critical, direction:\"descending\"}, {High, direction:\"descending\"},\n       {`Container images`, direction:\"descending\"}\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk score",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": 9
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-security-risk-level-high-default, #cd3741)"
+                                },
+                                "comparator": ">",
+                                "label": "",
+                                "value": 7
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Repository",
+                        "valueAxisLabel": "Critical,High,Container images",
+                        "categoryAxis": [
+                            "Repository"
+                        ],
+                        "valueAxis": [
+                            "Critical",
+                            "High",
+                            "Container images"
+                        ],
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [],
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "",
+                    "recordField": "Vulnerability external id (CVE)",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "riskScore"
+                        ]
+                    ],
+                    "lineWrapIds": [],
+                    "columnWidths": {}
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Critical"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Repository"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Critical",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "High",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Container images",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Repository"
+                    ]
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        }
+    },
+    "layouts": {
+        "1": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 2
+        },
+        "2": {
+            "x": 0,
+            "y": 21,
+            "w": 8,
+            "h": 6
+        },
+        "5": {
+            "x": 0,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "6": {
+            "x": 2,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "10": {
+            "x": 0,
+            "y": 12,
+            "w": 6,
+            "h": 7
+        },
+        "16": {
+            "x": 8,
+            "y": 6,
+            "w": 8,
+            "h": 2
+        },
+        "19": {
+            "x": 0,
+            "y": 6,
+            "w": 8,
+            "h": 2
+        },
+        "20": {
+            "x": 4,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "21": {
+            "x": 0,
+            "y": 2,
+            "w": 24,
+            "h": 4
+        },
+        "25": {
+            "x": 0,
+            "y": 20,
+            "w": 8,
+            "h": 1
+        },
+        "27": {
+            "x": 16,
+            "y": 6,
+            "w": 8,
+            "h": 2
+        },
+        "28": {
+            "x": 0,
+            "y": 19,
+            "w": 24,
+            "h": 1
+        },
+        "30": {
+            "x": 8,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "31": {
+            "x": 10,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "32": {
+            "x": 12,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "34": {
+            "x": 8,
+            "y": 12,
+            "w": 6,
+            "h": 7
+        },
+        "35": {
+            "x": 16,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "36": {
+            "x": 20,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "37": {
+            "x": 18,
+            "y": 10,
+            "w": 2,
+            "h": 2
+        },
+        "39": {
+            "x": 8,
+            "y": 20,
+            "w": 8,
+            "h": 1
+        },
+        "40": {
+            "x": 8,
+            "y": 21,
+            "w": 8,
+            "h": 6
+        },
+        "41": {
+            "x": 16,
+            "y": 12,
+            "w": 6,
+            "h": 7
+        },
+        "42": {
+            "x": 16,
+            "y": 20,
+            "w": 8,
+            "h": 1
+        },
+        "43": {
+            "x": 16,
+            "y": 21,
+            "w": 8,
+            "h": 6
+        },
+        "44": {
+            "x": 6,
+            "y": 12,
+            "w": 2,
+            "h": 7
+        },
+        "45": {
+            "x": 14,
+            "y": 12,
+            "w": 2,
+            "h": 7
+        },
+        "46": {
+            "x": 6,
+            "y": 8,
+            "w": 2,
+            "h": 4
+        },
+        "47": {
+            "x": 14,
+            "y": 8,
+            "w": 2,
+            "h": 4
+        },
+        "48": {
+            "x": 22,
+            "y": 8,
+            "w": 2,
+            "h": 11
+        },
+        "49": {
+            "x": 0,
+            "y": 8,
+            "w": 6,
+            "h": 2
+        },
+        "50": {
+            "x": 8,
+            "y": 8,
+            "w": 6,
+            "h": 2
+        },
+        "51": {
+            "x": 16,
+            "y": 8,
+            "w": 6,
+            "h": 2
+        },
+        "52": {
+            "x": 0,
+            "y": 27,
+            "w": 24,
+            "h": 1
+        },
+        "53": {
+            "x": 16,
+            "y": 28,
+            "w": 8,
+            "h": 1
+        },
+        "54": {
+            "x": 8,
+            "y": 28,
+            "w": 8,
+            "h": 1
+        },
+        "55": {
+            "x": 0,
+            "y": 28,
+            "w": 8,
+            "h": 1
+        },
+        "56": {
+            "x": 16,
+            "y": 29,
+            "w": 8,
+            "h": 6
+        },
+        "57": {
+            "x": 8,
+            "y": 29,
+            "w": 8,
+            "h": 6
+        },
+        "58": {
+            "x": 0,
+            "y": 29,
+            "w": 8,
+            "h": 6
+        }
+    },
+    "importedWithCode": false,
+    "settings": {
+        "defaultTimeframe": {
+            "value": {
+                "from": "now()-7d",
+                "to": "now()"
+            },
+            "enabled": true
+        }
+    }
+}
