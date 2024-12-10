@@ -1,5 +1,8 @@
 # How to do DORA Analysis with Dynatrace
+
 This notebook provides best practices on using Dynatrace to monitor some of the DORA metrics.
+
+**SDLC Events Are Coming**: Be aware the Dynatrace is currentely working on SDLC (Software Delivery Lifecycle Events) that will replace some of the best practices highlighted in this guide. We will update this guide as SDLC Events expand their use cases. To learn more about SDLC Events please go here: [Ingest SDLC Events into Dynatrace](https://docs.dynatrace.com/docs/deliver/sdlc-events)
 
 **Got questions or feedback?**: [devrel@dynatrace.com](mailto:devrel@dynatrace.com?subject=Feedback%20on%20DORA)
 
