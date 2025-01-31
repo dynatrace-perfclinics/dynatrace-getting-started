@@ -1,0 +1,2838 @@
+{
+    "version": 17,
+    "variables": [
+        {
+            "key": "Product",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(event.provider)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else:\"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "AffectedObjectType",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(object.type)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else: \"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        },
+        {
+            "key": "EventType",
+            "type": "query",
+            "visible": true,
+            "input": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n| summarize rawValues = arrayRemoveNulls(arraySort(collectDistinct(event.type)))\n| fieldsAdd values = if(arraySize(rawValues) > 0, rawValues, else: \"None\")",
+            "multiple": true,
+            "defaultValue": [
+                "3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+            ]
+        }
+    ],
+    "tiles": {
+        "1": {
+            "type": "markdown",
+            "title": "",
+            "content": "# Security product coverage\n\nOverview of the security product coverage by various covered objects and entities. Learn more about [Security events ingest](https://dt-url.net/1d63p0v)."
+        },
+        "19": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Coverage overview\nDistribution of security findings by reporting products and the corresponding affected object types."
+        },
+        "30": {
+            "type": "data",
+            "title": "Security events per top 10 products",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize {\n    Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n    Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n  }, by:{Product=event.provider}\n| sort Findings desc\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "categoricalBarChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Product"
+                        ],
+                        "categoryAxisLabel": "Product",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans"
+                        ],
+                        "valueAxisLabel": "Findings,Scans",
+                        "tooltipVariant": "single",
+                        "isCategoryLabelVisible": true
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "bottom"
+                    },
+                    "displayedFields": [
+                        "Product"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Product"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "Product",
+                    "displayedFields": [
+                        "Product",
+                        "Findings",
+                        "Scans"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "31": {
+            "type": "data",
+            "title": "Ingested finding events over time",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n     AND in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})\n// filter for events fitting the SD requirements\n| filterOut isNull(finding.id) OR isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| makeTimeseries count(), time:{timestamp}, by:{event.provider}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "areaChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "event.provider"
+                        ],
+                        "categoryAxisLabel": "event.provider",
+                        "valueAxis": [
+                            "interval"
+                        ],
+                        "valueAxisLabel": "interval",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "count()"
+                        ]
+                    },
+                    "xAxisLabel": "timeframe",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan",
+                        "interval"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": [
+                        {
+                            "fields": [
+                                "count()"
+                            ],
+                            "value": "sparkline",
+                            "id": 1732798893689
+                        }
+                    ]
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "event.provider"
+                    ],
+                    "dataMappings": {
+                        "value": "event.provider"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "categorical"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "interval",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "event.provider"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "interval"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "interval",
+                    "displayedFields": [
+                        "interval",
+                        "event.provider"
+                    ],
+                    "value": "interval",
+                    "longitude": "interval"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "32": {
+            "type": "data",
+            "title": "Scan events",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n     AND in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"})\n// filter for events fitting the SD requirements\n| filterOut isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize count()",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "count()"
+                        ],
+                        "categoryAxisLabel": "count()",
+                        "valueAxis": [
+                            "count()"
+                        ],
+                        "valueAxisLabel": "count()",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [],
+                    "dataMappings": {},
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "count()",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": []
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "count()"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "count()",
+                    "displayedFields": [
+                        "count()"
+                    ],
+                    "value": "count()",
+                    "longitude": "count()"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "33": {
+            "type": "data",
+            "title": "Reporting products",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize Products=countDistinctExact(event.provider)",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Products"
+                        ],
+                        "categoryAxisLabel": "Products",
+                        "valueAxis": [
+                            "Products"
+                        ],
+                        "valueAxisLabel": "Products",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "Products",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [],
+                    "dataMappings": {},
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Products",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": []
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Products"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "Products",
+                    "displayedFields": [
+                        "Products"
+                    ],
+                    "value": "Products",
+                    "longitude": "Products"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "34": {
+            "type": "data",
+            "title": "Ingested scan events over time",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n     AND in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"})\n// filter for events fitting the SD requirements\n| filterOut isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| makeTimeseries count(), time:{timestamp}, by:{event.provider}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "areaChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "event.provider"
+                        ],
+                        "categoryAxisLabel": "event.provider",
+                        "valueAxis": [
+                            "interval"
+                        ],
+                        "valueAxisLabel": "interval",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "count()"
+                        ]
+                    },
+                    "xAxisLabel": "timeframe",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan",
+                        "interval"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": [
+                        {
+                            "fields": [
+                                "count()"
+                            ],
+                            "value": "sparkline",
+                            "id": 1738068771037
+                        }
+                    ]
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "event.provider"
+                    ],
+                    "dataMappings": {
+                        "value": "event.provider"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "categorical"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "interval",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "event.provider"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "interval"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "displayedFields": [
+                        "interval",
+                        "event.provider"
+                    ],
+                    "value": "interval",
+                    "dimension": "interval",
+                    "longitude": "interval"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                },
+                "legend": {
+                    "ratio": 16
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "35": {
+            "type": "data",
+            "title": "Finding events",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n         AND in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})\n// filter for events fitting the SD requirements\n| filterOut isNull(object.id) or isNull(finding.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize count()",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "singleValue",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "count()"
+                        ],
+                        "categoryAxisLabel": "count()",
+                        "valueAxis": [
+                            "count()"
+                        ],
+                        "valueAxisLabel": "count()",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [],
+                    "dataMappings": {},
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "count()",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": []
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "count()"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "count()",
+                    "displayedFields": [
+                        "count()"
+                    ],
+                    "value": "count()",
+                    "longitude": "count()"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "36": {
+            "type": "data",
+            "title": "Security events by object coverage per product",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize {\n    Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n    Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"})),\n    Objects=countDistinctExact(object.id),\n    `Covered types`=collectDistinct(object.type)\n  }, by:{Product=event.provider}\n| sort Objects desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Product"
+                        ],
+                        "categoryAxisLabel": "Product",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans",
+                            "Objects"
+                        ],
+                        "valueAxisLabel": "Findings,Scans,Objects",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "Product"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Objects",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Product"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "Product",
+                    "displayedFields": [
+                        "Product",
+                        "Findings",
+                        "Scans",
+                        "Objects"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "37": {
+            "type": "data",
+            "title": "Security events by findings number per object type",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize {\n    Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n    Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"})),\n    Products=countDistinctExact(event.provider),\n    Names=collectDistinct(event.provider)\n  }, by:{Type=object.type}\n| sort Findings desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Type"
+                        ],
+                        "categoryAxisLabel": "Type",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans",
+                            "Products"
+                        ],
+                        "valueAxisLabel": "Findings,Scans,Products",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "Type"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Products",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Type"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "Type",
+                    "displayedFields": [
+                        "Type",
+                        "Findings",
+                        "Scans",
+                        "Products"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "38": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Runtime entity coverage: Hosts\nDynatrace-monitored host entities covered by the various ingested findings."
+        },
+        "39": {
+            "type": "data",
+            "title": "Security events per top 10 object types",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// get the latest vulnerability finding report for the affected entity and the component of the repository in the registry\n| summarize {\n    Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n    Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n  }, by:{`Object type`=object.type}\n| sort Findings desc\n| limit 10",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "categoricalBarChart",
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Object type"
+                        ],
+                        "categoryAxisLabel": "Object type",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans"
+                        ],
+                        "valueAxisLabel": "Findings,Scans",
+                        "tooltipVariant": "single",
+                        "isCategoryLabelVisible": true
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisLabel": "timestamp",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "event",
+                        "host",
+                        "object",
+                        "product",
+                        "scan",
+                        "right.component",
+                        "right.event",
+                        "right.host",
+                        "right.object",
+                        "right.product",
+                        "right.scan"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": false,
+                    "label": "count()",
+                    "prefixIcon": "",
+                    "recordField": "count()",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "Object type"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Object type"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "dataMapping": {
+                    "dimension": "Object type",
+                    "displayedFields": [
+                        "Object type",
+                        "Findings",
+                        "Scans"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "40": {
+            "type": "markdown",
+            "title": "",
+            "content": "## Runtime entity coverage: Container workloads\nDynatrace-monitored container workload entities covered by the various ingested findings."
+        },
+        "41": {
+            "type": "data",
+            "title": "Monitored container workload coverage",
+            "query": "fetch dt.entity.container_group_instance\n| fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, workload.id=belongs_to[dt.entity.cloud_application]\n| join [\n   fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(container_image.digest)\n  | summarize {\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{container_image.digest, event.provider}\n], kind:leftOuter, on:{left[containerImageDigest]==right[container_image.digest]}\n| fieldsAdd covered=if(isNotNull(right.container_image.digest), \"Covered\", else:\"Not covered\")\n| summarize {\n  Containers=countDistinctExact(workload.id)\n}, by:{covered}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "covered"
+                        ],
+                        "categoryAxisLabel": "covered",
+                        "valueAxis": [
+                            "Containers"
+                        ],
+                        "valueAxisLabel": "Containers",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "covered"
+                    ],
+                    "dataMappings": {
+                        "value": "Containers"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Containers",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "covered"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Containers"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "dataMapping": {
+                    "dimension": "covered",
+                    "displayedFields": [
+                        "covered",
+                        "Containers"
+                    ],
+                    "value": "Containers",
+                    "longitude": "Containers"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "visualization": "donutChart",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "42": {
+            "type": "data",
+            "title": "Host coverage by product",
+            "query": "fetch dt.entity.host\n| fieldsAdd entity.name, entity.detected_name, ipAddress\n| expand ipAddress\n| join [\n  fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(host.ip)\n  | expand host.ip\n  | summarize {\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{host.ip, event.provider}\n], kind:leftOuter, on:{left[ipAddress]==right[host.ip]}\n| fieldsAdd right.event.provider=if(isNotNull(right.host.ip), right.event.provider, else:\"Not covered\")\n| summarize {\n  Findings=sum(right.Findings),\n  Scans=sum(right.Scans),\n  Hosts=countDistinctExact(id)\n}, by:{Product=right.event.provider}\n| sort Hosts desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Product"
+                        ],
+                        "categoryAxisLabel": "Product",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans",
+                            "Hosts"
+                        ],
+                        "valueAxisLabel": "Findings,Scans,Hosts",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "Product"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Hosts",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Product"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "recordView": {
+                    "fieldsWidth": 202.27
+                },
+                "dataMapping": {
+                    "dimension": "Product",
+                    "displayedFields": [
+                        "Product",
+                        "Hosts"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "visualization": "table",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "43": {
+            "type": "data",
+            "title": "Monitored hosts scan coverage",
+            "query": "fetch dt.entity.host\n| fieldsAdd entity.name, entity.detected_name, ipAddress\n| expand ipAddress\n| join [\n  fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(host.ip)\n  | expand host.ip\n  | summarize {\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{host.ip, event.provider}\n], kind:leftOuter, on:{left[ipAddress]==right[host.ip]}\n| fieldsAdd covered=if(isNotNull(right.host.ip), \"Covered\", else:\"Not covered\")\n| summarize {\n  Hosts=countDistinctExact(id)\n}, by:{covered}",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative",
+                        "showTotalValue": true
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "covered"
+                        ],
+                        "categoryAxisLabel": "covered",
+                        "valueAxis": [
+                            "Hosts"
+                        ],
+                        "valueAxisLabel": "Hosts",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "covered"
+                    ],
+                    "dataMappings": {
+                        "value": "Hosts"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Hosts",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "covered"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Hosts"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "recordView": {
+                    "fieldsWidth": 202.27
+                },
+                "dataMapping": {
+                    "dimension": "covered",
+                    "displayedFields": [
+                        "covered",
+                        "Hosts"
+                    ],
+                    "value": "Hosts",
+                    "longitude": "Hosts"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "visualization": "donutChart",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "44": {
+            "type": "data",
+            "title": "Container workload coverage by product",
+            "query": "fetch dt.entity.container_group_instance\n| fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, workload.id=belongs_to[dt.entity.cloud_application]\n| join [\n   fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(container_image.digest)  \n  | summarize {\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{container_image.digest, event.provider}\n], kind:leftOuter, on:{left[containerImageDigest]==right[container_image.digest]}\n| fieldsAdd right.event.provider=if(isNotNull(right.container_image.digest), right.event.provider, else:\"Not covered\")\n| summarize {\n  Findings=sum(right.Findings),\n  Scans=sum(right.Scans),\n  Workloads=countDistinctExact(workload.id)\n}, by:{Product=right.event.provider}\n| sort Workloads desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "Product"
+                        ],
+                        "categoryAxisLabel": "Product",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans",
+                            "Workloads"
+                        ],
+                        "valueAxisLabel": "Findings,Scans,Workloads",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle"
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "Product"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Workloads",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "Product"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "dataMapping": {
+                    "dimension": "Product",
+                    "displayedFields": [
+                        "Product",
+                        "Workloads"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {}
+            },
+            "visualization": "table",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "45": {
+            "type": "data",
+            "title": "Covered monitored hosts",
+            "query": "fetch dt.entity.host\n| fieldsAdd entity.name, entity.detected_name, ipAddress\n| expand ipAddress\n| join [\n  fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(host.ip)\n  | filter object.type == \"HOST\"\n  | expand host.ip\n  | summarize {\n      timestamp=takeMax(timestamp),\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{host.ip, event.provider}\n], kind:leftOuter, on:{left[ipAddress]==right[host.ip]}\n| filter isNotNull(right.host.ip)\n| summarize {\n  `Last scan`=takeMax(right.timestamp),\n  Host=takeLast(entity.name),\n  IP=collectDistinct(ipAddress),\n  Findings=sum(right.Findings),\n  Scans=sum(right.Scans),\n  Products=collectDistinct(right.event.provider)\n}, by:{dt.source_entity=id}\n| sort `Last scan` desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "dt.source_entity",
+                            "Host"
+                        ],
+                        "categoryAxisLabel": "dt.source_entity,Host",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans"
+                        ],
+                        "valueAxisLabel": "Findings,Scans",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "fieldMapping": {
+                        "timestamp": "Last scan",
+                        "leftAxisValues": [
+                            "Findings"
+                        ]
+                    },
+                    "xAxisLabel": "Last scan",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "Findings",
+                        "Scans"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Host"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Host"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "recordView": {
+                    "fieldsWidth": 202.27
+                },
+                "dataMapping": {
+                    "dimension": "dt.source_entity",
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Last scan",
+                        "Host"
+                    ],
+                    "value": "Findings",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "visualization": "table",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "46": {
+            "type": "data",
+            "title": "Covered monitored container workloads",
+            "query": "fetch dt.entity.container_group_instance\n| fieldsAdd entity.name, containerImageDigest, containerImageName, workloadName, workload.id=belongs_to[dt.entity.cloud_application]\n| join [\n   fetch events\n  | filter dt.system.bucket == \"default_security_custom_events\"\n  | filter event.kind == \"SECURITY_EVENT\"\n  // filter for events fitting the SD requirements\n  | filterOut isNull(event.type) or isNull(object.id)\n  // filter with the dashboard variables\n  | filter (in(event.provider, $Product))\n       AND (in(object.type, $AffectedObjectType))\n       AND (in(event.type,$EventType))\n  | filterOut isNull(container_image.digest)\n  | summarize {\n      timestamp=takeMax(timestamp),\n      Findings=countIf(in(event.type,{\"VULNERABILITY_FINDING\",\"DETECTION_FINDING\",\"COMPLIANCE_FINDING\"})),\n      Scans=countIf(in(event.type,{\"VULNERABILITY_SCAN\",\"COMPLIANCE_SCAN\"}))\n    }, by:{container_image.digest, event.provider}\n], kind:leftOuter, on:{left[containerImageDigest]==right[container_image.digest]}\n| filter isNotNull(right.container_image.digest)\n| summarize {\n  `Last scan`=takeMax(right.timestamp),\n  Workload=takeAny(workloadName),\n  Findings=sum(right.Findings),\n  Scans=sum(right.Scans),\n  Products=collectDistinct(right.event.provider)\n}, by:{dt.source_entity=workload.id}\n| sort `Last scan` desc",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualizationSettings": {
+                "thresholds": [],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "categoryAxis": [
+                            "dt.source_entity",
+                            "Workload"
+                        ],
+                        "categoryAxisLabel": "dt.source_entity,Workload",
+                        "valueAxis": [
+                            "Findings",
+                            "Scans"
+                        ],
+                        "valueAxisLabel": "Findings,Scans",
+                        "tooltipVariant": "single"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "fieldMapping": {
+                        "timestamp": "Last scan",
+                        "leftAxisValues": [
+                            "Findings"
+                        ]
+                    },
+                    "xAxisLabel": "Last scan",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "Findings",
+                        "Scans"
+                    ],
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "Last asessment",
+                    "prefixIcon": "",
+                    "recordField": "Last asessment",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": true
+                    },
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [
+                        [
+                            "dt.source_entity"
+                        ]
+                    ],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto"
+                    },
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Workload"
+                    ],
+                    "dataMappings": {
+                        "value": "Findings"
+                    },
+                    "truncationMode": "middle",
+                    "colorMode": "color-palette",
+                    "colorPalette": "blue"
+                },
+                "histogram": {
+                    "legend": "auto",
+                    "yAxis": {
+                        "label": "Frequency",
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "Findings",
+                            "rangeAxis": ""
+                        },
+                        {
+                            "valueAxis": "Scans",
+                            "rangeAxis": ""
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Workload"
+                    ]
+                },
+                "label": {
+                    "showLabel": false,
+                    "label": "Findings"
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "autoSelectVisualization": false,
+                "unitsOverrides": [
+                    {
+                        "identifier": "Findings",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819432179
+                    },
+                    {
+                        "identifier": "Scans",
+                        "unitCategory": "unspecified",
+                        "baseUnit": "none",
+                        "displayUnit": null,
+                        "decimals": 0,
+                        "suffix": "",
+                        "delimiter": false,
+                        "added": 1732819438046
+                    }
+                ],
+                "dataMapping": {
+                    "displayedFields": [
+                        "dt.source_entity",
+                        "Last scan",
+                        "Workload"
+                    ],
+                    "value": "Findings",
+                    "dimension": "dt.source_entity",
+                    "longitude": "Findings",
+                    "latitude": "Scans"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "visualization": "table",
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        },
+        "47": {
+            "type": "markdown",
+            "title": "",
+            "content": "### Latest 50 security events\nRecently ingested security events.\n"
+        },
+        "48": {
+            "type": "data",
+            "title": "",
+            "query": "fetch events\n| filter dt.system.bucket == \"default_security_custom_events\"\n| filter event.kind == \"SECURITY_EVENT\"\n// filter for events fitting the SD requirements\n| filterOut isNull(event.type) or isNull(object.id)\n// filter with the dashboard variables\n| filter (in(event.provider, $Product))\n     AND (in(object.type, $AffectedObjectType))\n     AND (in(event.type,$EventType))\n// aggregation and custom filtering\n| fieldsAdd object.name=coalesce(object.name, object.id)\n| fields timestamp, Time=timestamp, `Source product`=event.provider, \n        `Event type`=event.type, `Object type`=object.type, `Affected object`=object.name\n| sort {timestamp, direction:\"descending\"}\n| fieldsRemove timestamp\n| limit 50",
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            },
+            "visualization": "table",
+            "visualizationSettings": {
+                "thresholds": [
+                    {
+                        "id": 1,
+                        "field": "Risk level",
+                        "title": "",
+                        "isEnabled": true,
+                        "rules": [
+                            {
+                                "id": 2,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-loglevel-emergency-default, #9033a3)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "CRITICAL"
+                            },
+                            {
+                                "id": 3,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-12-default, #cd3741)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "HIGH"
+                            },
+                            {
+                                "id": 4,
+                                "color": {
+                                    "Default": "var(--dt-colors-charts-categorical-color-14-default, #d56b1a)"
+                                },
+                                "comparator": "=",
+                                "label": "",
+                                "value": "MEDIUM"
+                            }
+                        ]
+                    }
+                ],
+                "chartSettings": {
+                    "xAxisScaling": "analyzedTimeframe",
+                    "gapPolicy": "connect",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "categoricalBarChartSettings": {
+                        "categoryAxisLabel": "Source product,Event type,Object type,Affected object",
+                        "valueAxisLabel": "",
+                        "categoryAxis": [
+                            "Source product",
+                            "Event type",
+                            "Object type",
+                            "Affected object"
+                        ],
+                        "valueAxis": [],
+                        "tooltipVariant": "single"
+                    },
+                    "hiddenLegendFields": [
+                        "Risk score"
+                    ],
+                    "truncationMode": "middle",
+                    "valueRepresentation": "absolute",
+                    "xAxisLabel": "Time",
+                    "xAxisIsLabelVisible": false,
+                    "leftYAxisSettings": {}
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "timestamp",
+                    "prefixIcon": "",
+                    "recordField": "timestamp",
+                    "autoscale": true,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value",
+                    "trend": {
+                        "trendType": "auto",
+                        "isVisible": false
+                    }
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "lineWrapIds": [
+                        [
+                            "Repository"
+                        ]
+                    ],
+                    "columnWidths": {},
+                    "columnTypeOverrides": []
+                },
+                "honeycomb": {
+                    "shape": "square",
+                    "dataMappings": {
+                        "value": "Source product"
+                    },
+                    "legend": "auto",
+                    "displayedFields": [
+                        "Source product",
+                        "Event type",
+                        "Object type",
+                        "Affected object"
+                    ],
+                    "colorMode": "color-palette",
+                    "colorPalette": "categorical"
+                },
+                "histogram": {
+                    "dataMappings": [],
+                    "variant": "single",
+                    "displayedFields": [
+                        "Source product",
+                        "Affected object"
+                    ]
+                },
+                "label": {
+                    "showLabel": false
+                },
+                "icon": {
+                    "showIcon": false,
+                    "icon": ""
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "dataMapping": {
+                    "dimension": "Time",
+                    "displayedFields": [
+                        "Time",
+                        "Source product",
+                        "Event type",
+                        "Object type",
+                        "Affected object"
+                    ]
+                },
+                "tooltip": {}
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 100,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            }
+        }
+    },
+    "layouts": {
+        "1": {
+            "x": 0,
+            "y": 0,
+            "w": 24,
+            "h": 2
+        },
+        "19": {
+            "x": 0,
+            "y": 8,
+            "w": 24,
+            "h": 2
+        },
+        "30": {
+            "x": 0,
+            "y": 10,
+            "w": 11,
+            "h": 6
+        },
+        "31": {
+            "x": 7,
+            "y": 2,
+            "w": 17,
+            "h": 4
+        },
+        "32": {
+            "x": 4,
+            "y": 6,
+            "w": 3,
+            "h": 2
+        },
+        "33": {
+            "x": 0,
+            "y": 2,
+            "w": 4,
+            "h": 6
+        },
+        "34": {
+            "x": 7,
+            "y": 6,
+            "w": 17,
+            "h": 2
+        },
+        "35": {
+            "x": 4,
+            "y": 2,
+            "w": 3,
+            "h": 4
+        },
+        "36": {
+            "x": 0,
+            "y": 16,
+            "w": 11,
+            "h": 6
+        },
+        "37": {
+            "x": 11,
+            "y": 16,
+            "w": 13,
+            "h": 6
+        },
+        "38": {
+            "x": 0,
+            "y": 22,
+            "w": 24,
+            "h": 2
+        },
+        "39": {
+            "x": 11,
+            "y": 10,
+            "w": 13,
+            "h": 6
+        },
+        "40": {
+            "x": 0,
+            "y": 34,
+            "w": 24,
+            "h": 2
+        },
+        "41": {
+            "x": 0,
+            "y": 36,
+            "w": 11,
+            "h": 7
+        },
+        "42": {
+            "x": 0,
+            "y": 31,
+            "w": 11,
+            "h": 3
+        },
+        "43": {
+            "x": 0,
+            "y": 24,
+            "w": 11,
+            "h": 7
+        },
+        "44": {
+            "x": 0,
+            "y": 43,
+            "w": 11,
+            "h": 3
+        },
+        "45": {
+            "x": 11,
+            "y": 24,
+            "w": 13,
+            "h": 10
+        },
+        "46": {
+            "x": 11,
+            "y": 36,
+            "w": 13,
+            "h": 10
+        },
+        "47": {
+            "x": 0,
+            "y": 46,
+            "w": 24,
+            "h": 2
+        },
+        "48": {
+            "x": 0,
+            "y": 48,
+            "w": 24,
+            "h": 12
+        }
+    },
+    "importedWithCode": false,
+    "settings": {
+        "defaultTimeframe": {
+            "value": {
+                "from": "now()-7d",
+                "to": "now()"
+            },
+            "enabled": true
+        }
+    }
+}

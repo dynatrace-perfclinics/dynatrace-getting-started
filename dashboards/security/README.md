@@ -32,3 +32,13 @@ For more information about how security reporting, refer to [Security data analy
 [Download](/dashboards/security/Container%20image%20alert%20reduction.json) this dashboard and import it in your Dynatrace environment
 
 ![Container image alert reduction](/images/dashboard_security_container_image_alert_reduction.png)
+
+**Security findings** - This report template provides an overview of the security findings reported by various products.
+[Download](/dashboards/security/Security%20findings.json) this dashboard and import it in your Dynatrace environment
+
+![Security findings](/images/dashboard_security_findings.png)
+
+**Security product coverage** - This report template provides an overview of the security product coverage by various covered objects and entities.
+[Download](/dashboards/security/Security%20product%20coverage.json) this dashboard and import it in your Dynatrace environment
+
+![Security product coverage](/images/dashboard_security_product_coverage.png)
