@@ -42,3 +42,8 @@ For more information about how security reporting, refer to [Security data analy
 [Download](/dashboards/security/Security%20product%20coverage.json) this dashboard and import it in your Dynatrace environment
 
 ![Security product coverage](/images/dashboard_security_product_coverage.png)
+
+**Sign-in activity monitoring** - This report template provides a comprehensive overview of user sign-in activities within your cloud environments.
+[Download](/dashboards/security/Sign-in%20activity%20monitring.json) this dashboard and import it in your Dynatrace environment
+
+![Sign-in activity monitoring](/images/dashboard_security_signin_activity_monitoring.png)
