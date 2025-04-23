@@ -109,7 +109,7 @@ fetch events
 ```
 
 # Step 3: Validate Release with Site Reliability Guardian (SRG)
-The [Site Reliability Guardian (SRG)](https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.site.reliability.guardian/) allows you to automatically validate a release against a set of objectives. Ideally the SRG is triggered through a Workflow to automatically validate the Guardian definition for every new deployment as shown in the Dynatrace Playground Tenant Workflow **Carts Reliability Validation**
+The [Site Reliability Guardian (SRG)](https://wkf10640.apps.dynatrace.com/ui/apps/dynatrace.site.reliability.guardian/) allows you to automatically validate a release against a set of objectives. Ideally the SRG is triggered through a Workflow to automatically validate the Guardian definition for every new deployment as shown in the Dynatrace Playground Tenant Workflow **Carts Reliability Validation**
 
 The guardian itself will create two BizEvents (event.provider="dynatrace.site.reliability.guardian"):
 * event.type="guardian.validation.started"
