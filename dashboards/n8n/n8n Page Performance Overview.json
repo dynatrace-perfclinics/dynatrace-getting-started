@@ -1,0 +1,205 @@
+{
+    "version": 18,
+    "variables": [],
+    "tiles": {
+        "0": {
+            "title": "",
+            "type": "data",
+            "subType": "dql-builder-metrics",
+            "query": "timeseries { avg(n8n_http_request_duration_seconds), value.A = avg(n8n_http_request_duration_seconds, scalar: true) }, by: { path }",
+            "visualization": "lineChart",
+            "visualizationSettings": {
+                "autoSelectVisualization": false,
+                "thresholds": [],
+                "chartSettings": {
+                    "gapPolicy": "gap",
+                    "circleChartSettings": {
+                        "groupingThresholdType": "relative",
+                        "groupingThresholdValue": 0,
+                        "valueType": "relative"
+                    },
+                    "categoryOverrides": {},
+                    "curve": "linear",
+                    "pointsDisplay": "auto",
+                    "categoricalBarChartSettings": {
+                        "layout": "horizontal",
+                        "categoryAxisTickLayout": "horizontal",
+                        "scale": "absolute",
+                        "groupMode": "stacked",
+                        "colorPaletteMode": "multi-color",
+                        "valueAxisScale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "valueRepresentation": "absolute",
+                    "truncationMode": "middle",
+                    "xAxisScaling": "analyzedTimeframe",
+                    "xAxisLabel": "timeframe",
+                    "xAxisIsLabelVisible": false,
+                    "hiddenLegendFields": [
+                        "service",
+                        "interval",
+                        "value.A",
+                        "avg(n8n_http_request_duration_seconds)"
+                    ],
+                    "fieldMapping": {
+                        "timestamp": "timeframe",
+                        "leftAxisValues": [
+                            "avg(n8n_http_request_duration_seconds)"
+                        ]
+                    },
+                    "leftYAxisSettings": {
+                        "isLabelVisible": true,
+                        "label": "n8n_http_request_duration_seconds"
+                    }
+                },
+                "singleValue": {
+                    "showLabel": true,
+                    "label": "",
+                    "prefixIcon": "AnalyticsIcon",
+                    "isIconVisible": false,
+                    "alignment": "center",
+                    "colorThresholdTarget": "value"
+                },
+                "table": {
+                    "rowDensity": "condensed",
+                    "enableSparklines": false,
+                    "hiddenColumns": [],
+                    "linewrapEnabled": false,
+                    "lineWrapIds": [],
+                    "monospacedFontEnabled": false,
+                    "monospacedFontColumns": [],
+                    "columnWidths": {},
+                    "columnTypeOverrides": [
+                        {
+                            "fields": [
+                                "avg(n8n_http_request_duration_seconds)"
+                            ],
+                            "value": "sparkline",
+                            "id": 1752202681006
+                        }
+                    ],
+                    "columnOrder": [
+                        "[\"timeframe\",\"start\"]",
+                        "[\"timeframe\",\"end\"]",
+                        "[\"interval\"]",
+                        "[\"path\"]",
+                        "[\"avg(n8n_http_request_duration_seconds)\"]",
+                        "[\"value.A\"]"
+                    ]
+                },
+                "honeycomb": {
+                    "shape": "hexagon",
+                    "legend": {
+                        "hidden": false,
+                        "position": "auto",
+                        "ratio": "auto"
+                    },
+                    "dataMappings": {},
+                    "displayedFields": [],
+                    "truncationMode": "middle",
+                    "labels": {
+                        "showLabels": false
+                    },
+                    "colorMode": "color-palette",
+                    "colorPalette": "categorical"
+                },
+                "histogram": {
+                    "legend": {
+                        "position": "auto"
+                    },
+                    "yAxis": {
+                        "label": "Frequency",
+                        "isLabelVisible": true,
+                        "scale": "linear"
+                    },
+                    "colorPalette": "categorical",
+                    "dataMappings": [
+                        {
+                            "valueAxis": "value.A"
+                        },
+                        {
+                            "valueAxis": "interval"
+                        }
+                    ],
+                    "variant": "single",
+                    "truncationMode": "middle",
+                    "displayedFields": [
+                        "path",
+                        "service.name",
+                        "metric.key"
+                    ]
+                },
+                "valueBoundaries": {
+                    "min": "auto",
+                    "max": "auto"
+                },
+                "dataMapping": {
+                    "dimension": "interval",
+                    "displayedFields": [
+                        "path"
+                    ],
+                    "latitude": "value.A",
+                    "longitude": "interval"
+                },
+                "legend": {
+                    "textTruncationMode": "middle",
+                    "showLegend": true,
+                    "position": "auto"
+                },
+                "tooltip": {
+                    "showCustomFields": false
+                }
+            },
+            "querySettings": {
+                "maxResultRecords": 1000,
+                "defaultScanLimitGbytes": 500,
+                "maxResultMegaBytes": 1,
+                "defaultSamplingRatio": 10,
+                "enableSampling": false
+            },
+            "queryConfig": {
+                "version": "15.1.1",
+                "subQueries": [
+                    {
+                        "id": "A",
+                        "isEnabled": true,
+                        "datatype": "metrics",
+                        "metric": {
+                            "key": "n8n_http_request_duration_seconds",
+                            "aggregation": "avg"
+                        },
+                        "by": [
+                            "path"
+                        ]
+                    }
+                ]
+            },
+            "davis": {
+                "enabled": false,
+                "davisVisualization": {
+                    "isAvailable": true
+                }
+            }
+        },
+        "1": {
+            "type": "markdown",
+            "content": "This chart requires the `cumulativetodelta` processor added to the collector `metrics` pipeline and the follow env vars to be set:\n* `N8N_METRICS_INCLUDE_API_ENDPOINTS=true`\n* `N8N_METRICS_INCLUDE_API_ENDPOINTS_PATH_LABEL=true`\n"
+        }
+    },
+    "layouts": {
+        "0": {
+            "x": 0,
+            "y": 2,
+            "w": 21,
+            "h": 9
+        },
+        "1": {
+            "x": 1,
+            "y": 0,
+            "w": 23,
+            "h": 2
+        }
+    },
+    "importedWithCode": false,
+    "settings": {}
+}
