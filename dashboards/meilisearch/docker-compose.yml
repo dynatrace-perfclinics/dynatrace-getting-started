@@ -1,0 +1,27 @@
+# Made by AG
+version: '3.8'
+
+volumes:
+  meili_storage:
+
+services:
+  meilisearch:
+    env_file: .env
+    image: getmeili/meilisearch:v1.15
+    restart: always
+    environment:
+      - MEILI_ENV=${MEILI_ENV}
+      - MEILI_NO_ANALYTICS
+    ports:
+      - 7700:7700
+    volumes:
+      - meili_storage:/meili_data
+
+# Adam added
+  collector:
+    env_file: .env
+    image: ghcr.io/dynatrace/dynatrace-otel-collector/dynatrace-otel-collector:0.31.0
+    command: ["--config=/etc/otelcol/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/otel-collector-config.yaml
+      - meili_storage:/meili_data:ro
