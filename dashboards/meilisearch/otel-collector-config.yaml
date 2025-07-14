@@ -1,0 +1,30 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 5s
+          metrics_path: /metrics
+          static_configs:
+            - targets: ['meilisearch:7700']
+
+processors:
+  batch:
+    send_batch_size: 500
+    timeout: 2s
+  cumulativetodelta:
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  otlphttp/dynatrace:
+    endpoint: "${env:DT_ENV_URL}/api/v2/otlp"
+    headers: 
+      Authorization: "Api-Token ${env:DT_API_TOKEN}"
+service:
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [cumulativetodelta, batch]
+      exporters: [debug, otlphttp/dynatrace]
