@@ -17,7 +17,6 @@ services:
     volumes:
       - meili_storage:/meili_data
 
-# Adam added
   collector:
     env_file: .env
     image: ghcr.io/dynatrace/dynatrace-otel-collector/dynatrace-otel-collector:0.31.0
