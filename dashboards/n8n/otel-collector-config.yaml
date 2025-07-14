@@ -1,0 +1,36 @@
+receivers:
+  filelog:
+    include: /n8nlogs/*.log
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 5s
+          metrics_path: /metrics
+          static_configs:
+            - targets: ['n8n:5678']
+
+processors:
+  batch:
+    send_batch_size: 500
+    timeout: 2s
+  cumulativetodelta:
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  otlphttp/dynatrace:
+    endpoint: "https://abc12345.live.dynatrace.com/api/v2/otlp"
+    headers: 
+      Authorization: "Api-Token ${env:DT_API_TOKEN}"
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: [otlphttp/dynatrace]
+    metrics:
+      receivers: [prometheus]
+      processors: [cumulativetodelta, batch]
+      exporters: [debug, otlphttp/dynatrace]
