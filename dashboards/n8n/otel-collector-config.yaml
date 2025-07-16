@@ -21,7 +21,7 @@ exporters:
     verbosity: detailed
 
   otlphttp/dynatrace:
-    endpoint: "https://abc12345.live.dynatrace.com/api/v2/otlp"
+    endpoint: "${env:DT_ENVIRONMENT_URL}/api/v2/otlp"
     headers: 
       Authorization: "Api-Token ${env:DT_API_TOKEN}"
 service:
