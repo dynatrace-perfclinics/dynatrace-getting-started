@@ -1,0 +1,63 @@
+{
+  "name": "scheduled workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "97de9df8-e053-43db-95ba-08a725978fa7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "aaadc7e6-9d3c-46e8-819b-b40a7f93e39e",
+      "name": "Wait",
+      "webhookId": "de9119b5-b48a-4a1c-9000-4f63dfd1337d"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timeSavedPerExecution": 9
+  },
+  "versionId": "476dc687-0438-4903-91bb-5fdd0d9bf93b",
+  "meta": {
+    "instanceId": "dbcb250c05088c64d7098310ab01f41231c8f10d8bab3fc19dfdc50f1ce7081c"
+  },
+  "id": "ZDwGe4HPyXSEosge",
+  "tags": []
+}
