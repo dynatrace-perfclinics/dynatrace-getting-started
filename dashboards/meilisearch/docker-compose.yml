@@ -10,8 +10,10 @@ services:
     image: getmeili/meilisearch:v1.15
     restart: always
     environment:
+      - MEILI_HTTP_ADDR=${MEILI_HTTP_ADDR}
       - MEILI_ENV=${MEILI_ENV}
-      - MEILI_NO_ANALYTICS
+      - MEILI_NO_ANALYTICS=${MEILI_NO_ANALYTICS}
+      - MEILI_EXPERIMENTAL_ENABLE_METRICS=${MEILI_EXPERIMENTAL_ENABLE_METRICS}
     ports:
       - 7700:7700
     volumes:
@@ -23,4 +25,3 @@ services:
     command: ["--config=/etc/otelcol/otel-collector-config.yaml"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol/otel-collector-config.yaml
-      - meili_storage:/meili_data:ro
