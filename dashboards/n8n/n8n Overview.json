@@ -1,11 +1,11 @@
 {
-    "version": 18,
+    "version": 20,
     "variables": [
         {
             "key": "n8n_root_url",
             "visible": false,
             "type": "text",
-            "version": 1,
+            "version": 2,
             "editable": true,
             "defaultValue": "http://localhost:5678"
         }
@@ -21,95 +21,13 @@
             "query": "fetch logs\n| search(\"n8n.audit\")\n| parse content, \"JSON:json_content\"\n| fieldsAdd payloadContent = json_content[payload]\n| fields timestamp, json_content[id], json_content[eventName], payloadContent",
             "visualization": "table",
             "visualizationSettings": {
+                "autoSelectVisualization": true,
                 "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "count()"
-                    ],
-                    "leftYAxisSettings": {},
-                    "legend": {
-                        "position": "bottom",
-                        "hidden": false
-                    }
-                },
-                "singleValue": {
-                    "showLabel": true,
-                    "label": "",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
-                    "alignment": "center",
-                    "colorThresholdTarget": "value"
-                },
                 "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": []
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                },
-                "autoSelectVisualization": true
+                    "columnWidths": {
+                        "[\"json_content[eventName]\"]": 348
+                    }
+                }
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -139,118 +57,22 @@
             "query": "fetch logs\n| search(\"n8n.workflow.success\")\n| parse content, \"JSON:json_content\"\n| fields timestamp, json_content[`payload`][`executionId`], json_content[`payload`][`workflowId`], json_content[`payload`][`isManual`], json_content[`payload`][`workflowName`]\n| fieldsAdd `execution link` = concat(\"[link](\", concat($n8n_root_url, \"/workflow/\",`json_content[payload][workflowId]`, \"/executions/\", `json_content[payload][executionId]`), \")\")\n| summarize count(), by: {`json_content[payload][workflowName]`}",
             "visualization": "categoricalBarChart",
             "visualizationSettings": {
-                "autoSelectVisualization": false,
-                "thresholds": [],
                 "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
+                    "truncationMode": "middle",
                     "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
                     "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear",
+                        "categoryAxisLabel": "json_content[payload][workflowName]",
                         "categoryAxis": [
                             "json_content[payload][workflowName]"
                         ],
                         "valueAxis": [
                             "count()"
                         ],
-                        "categoryAxisLabel": "json_content[payload][workflowName]",
-                        "valueAxisLabel": "count()",
-                        "tooltipVariant": "single"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "count()"
-                    ],
-                    "leftYAxisSettings": {}
+                        "valueAxisLabel": "count()"
+                    }
                 },
-                "singleValue": {
-                    "showLabel": true,
-                    "label": "json_content[payload][workflowId]",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
-                    "recordField": "json_content[payload][workflowId]",
-                    "sparklineSettings": {
-                        "record": "count()"
-                    },
-                    "alignment": "center",
-                    "trend": {
-                        "trendType": "auto",
-                        "isVisible": true
-                    },
-                    "colorThresholdTarget": "value"
-                },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": [],
-                    "columnOrder": [
-                        "[\"json_content[payload][workflowName]\"]",
-                        "[\"count()\"]"
-                    ],
-                    "sortBy": [
-                        {
-                            "columnId": "[\"execution link\"]",
-                            "direction": "ascending"
-                        }
-                    ]
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                }
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -276,89 +98,16 @@
             "query": "fetch logs\n| search(\"n8n.workflow.started\")\n| summarize count()",
             "visualization": "singleValue",
             "visualizationSettings": {
-                "autoSelectVisualization": false,
-                "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle"
-                },
                 "singleValue": {
-                    "showLabel": false,
+                    "labelMode": "none",
                     "label": "count()",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
                     "recordField": "count()",
-                    "sparklineSettings": {},
-                    "alignment": "center",
                     "trend": {
-                        "trendType": "auto",
                         "isVisible": true
-                    },
-                    "colorThresholdTarget": "value"
+                    }
                 },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": []
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                }
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -380,24 +129,11 @@
             "query": "fetch logs\n| search(\"n8n.workflow.failed\")\n| parse content, \"JSON:json_content\"\n| fields timestamp, json_content[`payload`][`executionId`], json_content[`payload`][`workflowId`], json_content[`payload`][`isManual`], json_content[`payload`][`workflowName`]\n| fieldsAdd `execution link` = concat(\"[link](\", concat($n8n_root_url, \"/workflow/\",`json_content[payload][workflowId]`, \"/executions/\", `json_content[payload][executionId]`), \")\")\n| summarize count(), by: {`json_content[payload][workflowName]`}",
             "visualization": "categoricalBarChart",
             "visualizationSettings": {
-                "thresholds": [],
                 "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
+                    "truncationMode": "middle",
                     "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
                     "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear",
+                        "isCategoryLabelVisible": false,
                         "categoryAxis": [
                             "count()",
                             "json_content[payload][workflowName]"
@@ -405,98 +141,11 @@
                         "valueAxis": [
                             "count()"
                         ],
-                        "categoryAxisLabel": "",
-                        "valueAxisLabel": "count()",
-                        "tooltipVariant": "single",
-                        "isCategoryLabelVisible": false
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "count()"
-                    ],
-                    "leftYAxisSettings": {},
-                    "legend": {
-                        "hidden": false
+                        "valueAxisLabel": "count()"
                     }
                 },
-                "singleValue": {
-                    "showLabel": true,
-                    "label": "json_content[payload][workflowId]",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
-                    "recordField": "json_content[payload][workflowId]",
-                    "sparklineSettings": {
-                        "record": "count()"
-                    },
-                    "alignment": "center",
-                    "trend": {
-                        "trendType": "auto",
-                        "isVisible": true
-                    },
-                    "colorThresholdTarget": "value"
-                },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": [],
-                    "columnOrder": [
-                        "[\"json_content[payload][workflowName]\"]",
-                        "[\"count()\"]"
-                    ],
-                    "sortBy": [
-                        {
-                            "columnId": "[\"execution link\"]",
-                            "direction": "ascending"
-                        }
-                    ]
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                },
-                "autoSelectVisualization": false
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -518,111 +167,19 @@
             "query": "fetch logs\n| search(\"n8n.workflow.success\")\n| summarize count()",
             "visualization": "singleValue",
             "visualizationSettings": {
-                "autoSelectVisualization": false,
-                "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear",
-                        "categoryAxisLabel": "count()",
-                        "valueAxisLabel": "count()",
-                        "tooltipVariant": "single"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "count()"
-                    ],
-                    "leftYAxisSettings": {}
-                },
                 "singleValue": {
-                    "showLabel": false,
+                    "labelMode": "none",
                     "label": "json_content[payload][workflowId]",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
                     "recordField": "count()",
                     "sparklineSettings": {
                         "record": "count()"
                     },
-                    "alignment": "center",
                     "trend": {
-                        "trendType": "auto",
                         "isVisible": true
-                    },
-                    "colorThresholdTarget": "value"
+                    }
                 },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": [],
-                    "columnOrder": [
-                        "[\"count()\"]"
-                    ],
-                    "sortBy": [
-                        {
-                            "columnId": "[\"execution link\"]",
-                            "direction": "ascending"
-                        }
-                    ]
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                }
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -644,121 +201,19 @@
             "query": "fetch logs\n| search(\"n8n.workflow.failed\")\n| summarize count()",
             "visualization": "singleValue",
             "visualizationSettings": {
-                "autoSelectVisualization": false,
-                "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear",
-                        "categoryAxis": [
-                            "count()"
-                        ],
-                        "valueAxis": [
-                            "count()"
-                        ],
-                        "categoryAxisLabel": "count()",
-                        "valueAxisLabel": "count()",
-                        "tooltipVariant": "single",
-                        "isCategoryLabelVisible": false
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "count()"
-                    ],
-                    "leftYAxisSettings": {},
-                    "legend": {
-                        "hidden": false
-                    }
-                },
                 "singleValue": {
-                    "showLabel": false,
+                    "labelMode": "none",
                     "label": "json_content[payload][workflowId]",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
                     "recordField": "count()",
                     "sparklineSettings": {
                         "record": "count()"
                     },
-                    "alignment": "center",
                     "trend": {
-                        "trendType": "auto",
                         "isVisible": true
-                    },
-                    "colorThresholdTarget": "value"
+                    }
                 },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": [],
-                    "columnOrder": [
-                        "[\"count()\"]"
-                    ],
-                    "sortBy": [
-                        {
-                            "columnId": "[\"execution link\"]",
-                            "direction": "ascending"
-                        }
-                    ]
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                }
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -781,125 +236,19 @@
             "query": "timeseries { avg(n8n_active_workflow_count), value.A = avg(n8n_active_workflow_count, scalar: true) }",
             "visualization": "singleValue",
             "visualizationSettings": {
-                "autoSelectVisualization": false,
-                "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle",
-                    "xAxisScaling": "analyzedTimeframe",
-                    "xAxisLabel": "timeframe",
-                    "xAxisIsLabelVisible": false,
-                    "hiddenLegendFields": [
-                        "interval",
-                        "value.A"
-                    ],
-                    "fieldMapping": {
-                        "timestamp": "timeframe",
-                        "leftAxisValues": [
-                            "avg(n8n_active_workflow_count)"
-                        ]
-                    },
-                    "leftYAxisSettings": {}
-                },
                 "singleValue": {
-                    "showLabel": false,
+                    "labelMode": "none",
                     "label": "value.A",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
                     "recordField": "value.A",
                     "sparklineSettings": {
                         "record": "avg(n8n_active_workflow_count)"
                     },
-                    "alignment": "center",
                     "trend": {
-                        "trendType": "auto",
-                        "isVisible": false,
-                        "label": "",
-                        "upward": {
-                            "Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
-                        },
-                        "downward": {
-                            "Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
-                        },
-                        "neutral": {
-                            "Default": "var(--dt-colors-charts-diverging-red-blue-color-10-default, #134fc9)"
-                        },
-                        "isRelative": true,
-                        "isLabelVisible": false
-                    },
-                    "colorThresholdTarget": "value"
+                        "isVisible": false
+                    }
                 },
-                "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
-                    "columnWidths": {},
-                    "columnTypeOverrides": [
-                        {
-                            "fields": [
-                                "avg(n8n_active_workflow_count)"
-                            ],
-                            "value": "sparkline",
-                            "id": 1752037765480
-                        }
-                    ]
-                },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                }
+                "autoSelectVisualization": false,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -909,7 +258,7 @@
                 "enableSampling": false
             },
             "queryConfig": {
-                "version": "15.1.1",
+                "version": "17.0.1",
                 "subQueries": [
                     {
                         "id": "A",
@@ -931,51 +280,15 @@
         },
         "21": {
             "title": "Workflow Execution Log",
+            "description": "",
             "type": "data",
-            "query": "fetch logs, scanLimitGBytes: 500\n| search(\"n8n.workflow\")\n| parse content, \"JSON:json_content\"\n/* We must use the timestamp in the content\n*  NOT the `timestamp` field because remember, the Dynatrace collector gathers and sends logs in at an interval\n*  thus, according to DT a started + finished `timestamp` could be the same (its the time both log lines hit Dynatrace)\n* and NOT the time they actually occurred.\n* This time they actually occurred is content[ts]\n*/\n| fieldsAdd payload = json_content[payload]\n| fieldsAdd realTS = json_content[ts]\n| fieldsAdd errorMessage = payload[errorMessage]\n| fields realTS, executionID = payload[`executionId`], eventName = json_content[`eventName`], workflowID = payload[`workflowId`], isManual = payload[`isManual`], workflowName = payload[`workflowName`], errorMessage\n// Combining the data by the executionID\n// First sort by execution ID and timestamp to ensure all .started are first\n| sort executionID, realTS\n| summarize t = collectArray(record(realTS = toTimestamp(realTS), eventName, workflowID, workflowName, errorMessage)), by:{executionID}\n// Re-add the fields as standalone fields\n// Note the isNull check for error message:\n// Most workflows (hopefully are successful and thus won't have an error message\n// ie. errorMessage will be null - in which case, just to an empty string\n// If there is an errorMessage, use it\n| fieldsAdd workflowID = t[0][workflowID]\n| fieldsAdd workflowName = t[0][workflowName]\n| fieldsAdd errorMessage = if(isNull(t[1][errorMessage]), \"\", else: t[1][errorMessage])\n// Generate human readable status\n// Split the status and if it isn't null (will occur when the workflow is running)\n// take the last part\n| fieldsAdd workflowStatus = if(isNotNull(splitString(t[1][eventName], \".\")[2]), if(splitString(t[1][eventName], \".\")[2] == \"success\", \"✅ Success\", else: \"❌ Error\"), else: \"🔜 Running...\")\n| sort t[][eventName]\n// Calculate execution time\n// If the workflow is currently running it may not have a value\n// In which case, set the value to \"-\"\n| fieldsAdd `execution time` = if(isNull(t[1][realTS] - t[0][realTS]), \"-\", else: t[1][realTS] - t[0][realTS])\n\n| fieldsAdd `workflow run` = concat(\"[\", workflowName, \"](\", concat($n8n_root_url, \"/workflow/\", workflowID, \"/executions/\", executionID), \")\")\n// Clean up fields\n| fieldsRemove t, workflowID, workflowName\n| sort toLong(executionID) desc",
+            "query": "fetch logs, scanLimitGBytes: 500\n| search(\"n8n.workflow\")\n| parse content, \"JSON:json_content\"\n/* We must use the timestamp in the content\n*  NOT the `timestamp` field because remember, the Dynatrace collector gathers and sends logs in at an interval\n*  thus, according to DT a started + finished `timestamp` could be the same (its the time both log lines hit Dynatrace)\n* and NOT the time they actually occurred.\n* This time they actually occurred is content[ts]\n*/\n| fieldsAdd payload = json_content[payload]\n| fieldsAdd realTS = json_content[ts]\n| fieldsAdd errorMessage = payload[errorMessage]\n| fields realTS, executionID = payload[`executionId`], eventName = json_content[`eventName`], workflowID = payload[`workflowId`], isManual = payload[`isManual`], workflowName = payload[`workflowName`], errorMessage\n// Combining the data by the executionID\n// First sort by execution ID and timestamp to ensure all .started are first\n| sort executionID, realTS\n| summarize t = collectArray(record(realTS = toTimestamp(realTS), eventName, workflowID, workflowName, errorMessage)), by:{executionID}\n// Re-add the fields as standalone fields\n// Note the isNull check for error message:\n// Most workflows (hopefully are successful and thus won't have an error message\n// ie. errorMessage will be null - in which case, just to an empty string\n// If there is an errorMessage, use it\n| fieldsAdd workflowID = t[0][workflowID]\n| fieldsAdd workflowName = t[0][workflowName]\n// Generate human readable status\n// Split the status and if it isn't null (will occur when the workflow is running)\n// take the last part\n| fieldsAdd workflowStatus = if(isNotNull(splitString(t[1][eventName], \".\")[2]), if(splitString(t[1][eventName], \".\")[2] == \"success\", \"✅ Success\", else: \"❌ Error\"), else: \"🔜 Running...\")\n| sort t[][eventName]\n| fieldsAdd errorMessage = if (t[1][eventName] == \"n8n.workflow.failed\", t[1][errorMessage], else: \"\")\n// if(isNull(t[0][errorMessage]), \"\", else: t[1][errorMessage])\n// Calculate execution time\n// If the workflow is currently running it may not have a value\n// In which case, set the value to \"-\"\n// Note: The eventNames are sorted alphabetically so during a success:\n// n8n.workflow.started (ie. the start time) comes before n8n.workflow.success (ie. the finish time)\n// BUT during a failure:\n// n8n.workflow.failed (ie. the finish time) comes before n8n.workflow.started (ie. the start time)\n// which could lead to correct (but negative) timings for failed workflows (eg. -185ms where it should be 185ms)\n// Hence the nested ifs in the line below account for this possibility\n| fieldsAdd `execution time` = if(t[0][eventName] == \"n8n.workflow.started\", (if(isNull(t[1][realTS] - t[0][realTS]), \"-\", else: t[1][realTS] - t[0][realTS])), else: (if(isNull(t[0][realTS] - t[1][realTS]), \"-\", else: t[0][realTS] - t[1][realTS])))\n| fieldsAdd `workflow run` = concat(\"[\", workflowName, \"](\", concat($n8n_root_url, \"/workflow/\", workflowID, \"/executions/\", executionID), \")\")\n// Clean up fields\n| fieldsRemove t, workflowID, workflowName\n| sort toLong(executionID) desc",
             "visualization": "table",
             "visualizationSettings": {
-                "thresholds": [],
-                "chartSettings": {
-                    "gapPolicy": "gap",
-                    "circleChartSettings": {
-                        "groupingThresholdType": "relative",
-                        "groupingThresholdValue": 0,
-                        "valueType": "relative"
-                    },
-                    "categoryOverrides": {},
-                    "curve": "linear",
-                    "pointsDisplay": "auto",
-                    "categoricalBarChartSettings": {
-                        "layout": "horizontal",
-                        "categoryAxisTickLayout": "horizontal",
-                        "scale": "absolute",
-                        "groupMode": "stacked",
-                        "colorPaletteMode": "multi-color",
-                        "valueAxisScale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "valueRepresentation": "absolute",
-                    "truncationMode": "middle"
-                },
-                "singleValue": {
-                    "showLabel": true,
-                    "label": "",
-                    "prefixIcon": "AnalyticsIcon",
-                    "isIconVisible": false,
-                    "alignment": "center",
-                    "colorThresholdTarget": "value"
-                },
                 "table": {
-                    "rowDensity": "condensed",
-                    "enableSparklines": false,
-                    "hiddenColumns": [],
-                    "linewrapEnabled": false,
-                    "lineWrapIds": [],
-                    "monospacedFontEnabled": false,
-                    "monospacedFontColumns": [],
                     "columnWidths": {
-                        "[\"t\"]": 1111
+                        "[\"t\"]": 1111,
+                        "[\"errorMessage\"]": 280
                     },
                     "columnTypeOverrides": [
                         {
@@ -1002,47 +315,14 @@
                     ],
                     "columnOrder": [
                         "[\"executionID\"]",
-                        "[\"workflow run\"]",
                         "[\"workflowStatus\"]",
+                        "[\"errorMessage\"]",
                         "[\"execution time\"]",
-                        "[\"errorMessage\"]"
+                        "[\"workflow run\"]"
                     ]
                 },
-                "honeycomb": {
-                    "shape": "hexagon",
-                    "legend": {
-                        "hidden": false,
-                        "position": "auto",
-                        "ratio": "auto"
-                    },
-                    "dataMappings": {},
-                    "displayedFields": [],
-                    "truncationMode": "middle",
-                    "labels": {
-                        "showLabels": false
-                    },
-                    "colorMode": "color-palette",
-                    "colorPalette": "categorical"
-                },
-                "histogram": {
-                    "legend": {
-                        "position": "auto"
-                    },
-                    "yAxis": {
-                        "label": "Frequency",
-                        "isLabelVisible": true,
-                        "scale": "linear"
-                    },
-                    "colorPalette": "categorical",
-                    "dataMappings": [],
-                    "variant": "single",
-                    "truncationMode": "middle"
-                },
-                "valueBoundaries": {
-                    "min": "auto",
-                    "max": "auto"
-                },
-                "autoSelectVisualization": true
+                "autoSelectVisualization": true,
+                "thresholds": []
             },
             "querySettings": {
                 "maxResultRecords": 1000,
@@ -1056,8 +336,7 @@
                 "davisVisualization": {
                     "isAvailable": true
                 }
-            },
-            "description": ""
+            }
         }
     },
     "layouts": {
