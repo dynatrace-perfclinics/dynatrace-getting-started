@@ -2,10 +2,10 @@
     "version": 20,
     "variables": [
         {
-            "key": "n8n_root_url",
-            "visible": false,
-            "type": "text",
             "version": 2,
+            "key": "n8n_root_url",
+            "type": "text",
+            "visible": false,
             "editable": true,
             "defaultValue": "http://localhost:5678"
         }
@@ -233,7 +233,7 @@
             "title": "Active Workflows",
             "type": "data",
             "subType": "dql-builder-metrics",
-            "query": "timeseries { avg(n8n_active_workflow_count), value.A = avg(n8n_active_workflow_count, scalar: true) }",
+            "query": "timeseries max(n8n_active_workflow_count)\n| fieldsAdd value.A = arrayLast(`max(n8n_active_workflow_count)`)",
             "visualization": "singleValue",
             "visualizationSettings": {
                 "singleValue": {
@@ -266,8 +266,9 @@
                         "datatype": "metrics",
                         "metric": {
                             "key": "n8n_active_workflow_count",
-                            "aggregation": "avg"
-                        }
+                            "aggregation": "max"
+                        },
+                        "convertToValue": "Last"
                     }
                 ]
             },
