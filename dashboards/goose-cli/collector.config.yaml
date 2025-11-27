@@ -1,0 +1,37 @@
+receivers:
+  filelog:
+    # See here for the correct path
+    # https://block.github.io/goose/docs/guides/logs/#cli-logs
+    include: ["/home/yourUser/.local/state/goose/logs/cli/*/*.log"]
+    start_at: beginning
+  otlp:
+    protocols:
+      http:
+        endpoint: 127.0.0.1:4318
+
+processors:
+  cumulativetodelta:
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlphttp/dynatrace:
+    endpoint: ${env:DT_ENDPOINT}/api/v2/otlp
+    headers:
+       Authorization: "Api-Token ${env:DT_API_TOKEN}"
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: []
+      exporters: [otlphttp/dynatrace]
+    metrics:
+      receivers: [otlp]
+      processors: [cumulativetodelta]
+      exporters: [debug, otlphttp/dynatrace]
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [debug, otlphttp/dynatrace]
+      
