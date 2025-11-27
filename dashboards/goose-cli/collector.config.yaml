@@ -3,7 +3,6 @@ receivers:
     # See here for the correct path
     # https://block.github.io/goose/docs/guides/logs/#cli-logs
     include: ["/home/yourUser/.local/state/goose/logs/cli/*/*.log"]
-    start_at: beginning
   otlp:
     protocols:
       http:
