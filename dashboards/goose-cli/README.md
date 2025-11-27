@@ -36,6 +36,8 @@ You can choose to [run it as a Docker container or download the binary](https://
 Test the collector works by requesting its version:
 
 ```
-c:\\path\\to\\
+c:\path\to\dynatrace-otel-collector.exe --version
+v0.40.0
 ```
-Once the collector 
+
+1. Download [collector.config.yaml](collector.config.yaml) to your computer
