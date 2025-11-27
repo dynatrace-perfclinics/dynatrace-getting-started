@@ -12,8 +12,6 @@ processors:
   cumulativetodelta:
 
 exporters:
-  debug:
-    verbosity: detailed
   otlphttp/dynatrace:
     endpoint: ${env:DT_ENDPOINT}/api/v2/otlp
     headers:
@@ -28,9 +26,9 @@ service:
     metrics:
       receivers: [otlp]
       processors: [cumulativetodelta]
-      exporters: [debug, otlphttp/dynatrace]
+      exporters: [otlphttp/dynatrace]
     traces:
       receivers: [otlp]
       processors: []
-      exporters: [debug, otlphttp/dynatrace]
+      exporters: [otlphttp/dynatrace]
       
