@@ -1,0 +1,1361 @@
+{
+	"version": 21,
+	"variables": [
+		{
+			"version": 2,
+			"key": "ResolutionStatus",
+			"type": "query",
+			"visible": true,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.resolution.status}\n| fields vulnerability.resolution.status\n| sort vulnerability.resolution.status",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"version": 2,
+			"key": "RiskLevel",
+			"type": "query",
+			"visible": true,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.risk.level}\n| fields vulnerability.risk.level\n| sort vulnerability.risk.level",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"key": "K8sWorkload",
+			"visible": true,
+			"type": "query",
+			"version": 2,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n| expand workload=related_entities.kubernetes_workloads.names\n| dedup workload\n| fields workload\n| sort workload\n| append [data record(workload=\"All\")]\n| limit 999999",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"version": 2,
+			"key": "StackLevel",
+			"type": "query",
+			"visible": true,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n| dedup vulnerability.stack\n| fields vulnerability.stack\n| sort vulnerability.stack",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"version": 2,
+			"key": "Type",
+			"type": "query",
+			"visible": true,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n| dedup vulnerability.type\n| fields vulnerability.type\n| sort vulnerability.type",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"version": 2,
+			"key": "MuteStatus",
+			"type": "csv",
+			"visible": true,
+			"editable": true,
+			"input": "MUTED,NOT_MUTED",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		},
+		{
+			"key": "ComponentName",
+			"visible": true,
+			"type": "query",
+			"version": 2,
+			"editable": true,
+			"input": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n| dedup affected_entity.vulnerable_component.name\n| fields affected_entity.vulnerable_component.name\n| sort affected_entity.vulnerable_component.name\n| append [data record(affected_entity.vulnerable_component.name=\"All\")]\n| limit 999999",
+			"multiple": true,
+			"defaultValue": [
+				"3420b2ac-f1cf-4b24-b62d-61ba1ba8ed05*"
+			]
+		}
+	],
+	"tiles": {
+		"195": {
+			"title": "Vulnerabilities by risk",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize{\n  Critical=countIf(vulnerability.risk.level==\"CRITICAL\"),\n  High=countIf(vulnerability.risk.level==\"HIGH\"),\n  Medium=countIf(vulnerability.risk.level==\"MEDIUM\"),\n  Low=countIf(vulnerability.risk.level==\"LOW\"),\n  None=countIf(vulnerability.risk.level==\"NONE\"),\n  maxScore=takeMax(vulnerability.risk.score)\n}, by: {vulnerability.display_id}\n| fieldsAdd riskLevel=if(Critical>0,\"CRITICAL\", else:\n                         if(High>0,\"HIGH\", else:\n                         if(Medium>0,\"MEDIUM\", else:\n                         if(Low>0,\"LOW\", else:\n                         if(None>0,\"NONE\")))))\n| summarize {\nVulnerabilities=count(),\nmaxScore=takeMax(maxScore)\n}, by:{`Risk level`=riskLevel}\n| sort maxScore, direction:\"descending\"",
+			"visualization": "categoricalBarChart",
+			"visualizationSettings": {
+				"chartSettings": {
+					"truncationMode": "middle",
+					"colorPalette": "security-risk-level",
+					"categoryOverrides": {
+						"NONE": {
+							"color": {
+								"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+							},
+							"added": 1701791339383
+						}
+					},
+					"categoricalBarChartSettings": {
+						"categoryAxisLabel": "Risk level",
+						"categoryAxis": "Risk level",
+						"valueAxis": "Vulnerabilities",
+						"valueAxisLabel": "Vulnerabilities"
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"enabled": false,
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"196": {
+			"title": "Open muted",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {Muted=countIf(vulnerability.mute.status==\"MUTED\" AND vulnerability.resolution.status==\"OPEN\")}",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Muted",
+					"recordField": "Muted",
+					"prefixIcon": "NotificationOffIcon",
+					"alignment": "start",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"209": {
+			"type": "markdown",
+			"content": "\n### Threat exposure overview\n---\nThis sample dashboard provides a high-level overview of your scoped environment's exposure to the selected vulnerabilities.  \nLearn more about this reporting use cases in [Security data analysis and reporting](https://docs.dynatrace.com/docs/shortlink/visualize-analyze-security-findings)"
+		},
+		"215": {
+			"type": "markdown",
+			"content": "# <br>\n# <br>\n---"
+		},
+		"224": {
+			"title": "Open vulnerabilities",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in(affected_entity.vulnerable_component.names, $ComponentName))\n// start metric calculation\n| makeTimeseries {\n  Vulnerabilities=countIf(vulnerability.resolution.status==\"OPEN\" AND vulnerability.mute.status==\"NOT_MUTED\")\n}, time: timestamp, interval:3h\n| fieldsAdd `Open vulnerabilities`=arrayLast(Vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Open vulnerabilities",
+					"recordField": "Open vulnerabilities",
+					"prefixIcon": "ApplicationSecuritySignetIcon",
+					"alignment": "start",
+					"sparklineSettings": {
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-themed-fireplace-color-01-default, #ae132d)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Open vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771921982067
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"225": {
+			"title": "High",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {Vulnerabilities=countIf(vulnerability.risk.level == \"HIGH\")},\ntime: timestamp, interval:3h\n| fieldsAdd `High`=arrayLast(Vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "High",
+					"recordField": "High",
+					"prefixIcon": "SecurityHighIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "High",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922039384
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"226": {
+			"title": "Critical",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {Vulnerabilities=countIf(vulnerability.risk.level == \"CRITICAL\")},\ntime: timestamp, interval:3h\n| fieldsAdd `Critical`=arrayLast(Vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Critical",
+					"recordField": "Critical",
+					"prefixIcon": "SecurityCriticalIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-themed-fireplace-color-01-default, #ae132d)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Critical",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922017073
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"227": {
+			"title": "With resolved entities",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.resolution.change_date=takeMax(vulnerability.parent.resolution.change_date),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n//start metric calculation\n| summarize {\n  Resolved=countIf(vulnerability.resolution.status==\"RESOLVED\"  AND vulnerability.mute.status==\"NOT_MUTED\"\n                  AND vulnerability.parent.resolution.change_date>=toTimestamp($dt_timeframe_from)\n                  AND vulnerability.parent.resolution.change_date<=toTimestamp($dt_timeframe_to))\n}",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Resolved",
+					"recordField": "Resolved",
+					"alignment": "start",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-09-default, #649438)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": false,
+						"isRelative": false
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"228": {
+			"title": "With new affected entities",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.parent.resolution.change_date=takeMax(vulnerability.parent.resolution.change_date),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  Vulnerabilities=countIf(vulnerability.resolution.status==\"OPEN\" AND vulnerability.mute.status==\"NOT_MUTED\"\n                          AND vulnerability.parent.resolution.change_date>=toTimestamp($dt_timeframe_from)\n                          AND vulnerability.parent.resolution.change_date<=toTimestamp($dt_timeframe_to))\n}",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Vulnerabilities",
+					"recordField": "Vulnerabilities",
+					"alignment": "start",
+					"sparklineSettings": {
+						"color": {
+							"Default": "var(--dt-colors-charts-security-risk-level-critical-default, #8a0012)"
+						},
+						"variant": "area",
+						"record": "Vulnerabilities"
+					},
+					"trend": {
+						"isVisible": false,
+						"isRelative": false
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"233": {
+			"title": "Related Kubernetes workloads",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities=arrayRemoveNulls(collectDistinct(related_entities.kubernetes_workloads.ids, expand:true))\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  related_entities=arraySize(collectDistinct(related_entities, expand:true))\n}, by: {timestamp}\n| makeTimeseries {\n  entities=sum(related_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922137270
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"234": {
+			"title": "Related services",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities=arrayRemoveNulls(collectDistinct(related_entities.services.ids, expand:true))\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  related_entities=arraySize(collectDistinct(related_entities, expand:true))\n}, by: {timestamp}\n| makeTimeseries {\n  entities=sum(related_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922118617
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"235": {
+			"title": "Related applications",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities=arrayRemoveNulls(collectDistinct(related_entities.applications.ids, expand:true))\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  related_entities=arraySize(collectDistinct(related_entities))\n}, by: {timestamp}\n| makeTimeseries {\n  entities=sum(related_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922108776
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"236": {
+			"title": "Vulnerabilities (sorted by risk and total number of affected entities with assessments)",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.cvss.base_score=takeFirst(vulnerability.cvss.base_score),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.resolution.change_date=takeMax(vulnerability.parent.resolution.change_date),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.title=takeFirst(vulnerability.title),\n  vulnerability.references.cve=takeFirst(vulnerability.references.cve),\n  vulnerability.risk.score=round(takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),decimals:1),\n  affectedEntities=countDistinctExact(affected_entity.id),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  functionsInUse=countIf(vulnerability.davis_assessment.vulnerable_function_status==\"IN_USE\"),\n  functionsNotAvailable=countIf(vulnerability.davis_assessment.vulnerable_function_status==\"NOT_AVAILABLE\"),\n  exposurePublicNetwork=countIf(vulnerability.davis_assessment.exposure_status==\"PUBLIC_NETWORK\"),\n  exposureNotAvailable=countIf(vulnerability.davis_assessment.exposure_status==\"NOT_AVAILABLE\"),\n  exploitAvailable=countIf(vulnerability.davis_assessment.exploit_status==\"AVAILABLE\"),\n  reachableDataAssets=countIf(vulnerability.davis_assessment.data_assets_status==\"REACHABLE\")\n},\nby: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n// | filter vulnerability.parent.resolution.change_date >= toTimestamp($dt_timeframe_from)\n//           AND vulnerability.parent.resolution.change_date <= toTimestamp($dt_timeframe_to)\n| fieldsAdd vulnerability.title=concat(vulnerability.display_id,\" \",vulnerability.title)\n| fields\n  Status=concat(vulnerability.resolution.status,\" (\",vulnerability.mute.status,\")\"),\n  `Changed (days ago)`=toLong((toTimestamp($dt_timeframe_to)-vulnerability.parent.resolution.change_date)/1d),\n  Title=if(arraySize(vulnerability.references.cve)>0 AND NOT in(vulnerability.title,vulnerability.references.cve) ,\n           concat(vulnerability.title,vulnerability.references.cve),else:vulnerability.title),\n  vulnerability.risk.score,\n  DSS=concat(vulnerability.risk.level,\" (\",vulnerability.risk.score,\")\"),\n  CVSS=coalesce(vulnerability.cvss.base_score,\"-\"),\n  `Public exploit`=if(exploitAvailable>0,concat(\"❗\",\"Available\"),else:\"-\"),\n  `Public internet exposure`=exposurePublicNetwork,\n  `Vulnerable functions`=functionsInUse,\n  `Reachable data assets`=reachableDataAssets,\n   sorting=exposurePublicNetwork+functionsInUse+reachableDataAssets,\n   vulnerability.display_id\n| sort   {vulnerability.risk.score, direction:\"descending\"}, {sorting, direction:\"descending\"}\n| fieldsRemove sorting,vulnerability.risk.score",
+			"visualization": "table",
+			"visualizationSettings": {
+				"table": {
+					"hiddenColumns": [
+						[
+							"vulnerability.display_id"
+						]
+					],
+					"columnWidths": {
+						"[\"Title\"]": 420,
+						"[\"CVE\"]": 135,
+						"[\"DSS\"]": 195,
+						"[\"CVSS\"]": 95,
+						"[\"Public internet exposure\"]": 217,
+						"[\"Vulnerable functions\"]": 194,
+						"[\"Public exploit\"]": 147,
+						"[\"Reachable data assets\"]": 204,
+						"[\"vulnerability.display_id\"]": 600
+					}
+				},
+				"thresholds": [
+					{
+						"id": 1,
+						"field": "Public internet exposure",
+						"title": "",
+						"isEnabled": true,
+						"rules": [
+							{
+								"id": 0,
+								"color": {
+									"Default": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)"
+								},
+								"comparator": ">",
+								"label": "",
+								"value": 0
+							}
+						]
+					},
+					{
+						"id": 2,
+						"field": "Vulnerable functions",
+						"title": "",
+						"isEnabled": true,
+						"rules": [
+							{
+								"id": 0,
+								"color": {
+									"Default": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)"
+								},
+								"comparator": ">",
+								"label": "",
+								"value": 0
+							}
+						]
+					},
+					{
+						"id": 3,
+						"field": "Reachable data assets",
+						"title": "",
+						"isEnabled": true,
+						"rules": [
+							{
+								"id": 0,
+								"color": {
+									"Default": "var(--dt-colors-charts-loglevel-emergency-default, #ae132d)"
+								},
+								"comparator": ">",
+								"label": "",
+								"value": 0
+							}
+						]
+					}
+				],
+				"unitsOverrides": [
+					{
+						"identifier": "CVSS",
+						"unitCategory": "unspecified",
+						"baseUnit": "none",
+						"displayUnit": null,
+						"decimals": 1,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1704212515766
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"enabled": false,
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"239": {
+			"title": "Top 5 hosts by vulnerability count",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities.hosts.ids=collectDistinct(if(affected_entity.type==\"HOST\",array(affected_entity.id),\n                                else:related_entities.hosts.ids), expand:true)\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| expand host.id=related_entities.hosts.ids\n| join kind:inner, [\n      fetch dt.entity.host\n    | fieldsAdd host.name=entity.name, tags\n    | fields host.name, host.id=id, tags\n    | parse toString(tags), \"LD ('owner:'|'owner\\\\\\\\:') (SPACE)? LD:Team ('\\\"')\"   \n    | fieldsRemove tags\n    | fieldsAdd Team=coalesce(Team,\"-\")\n], on:{host.id}, fields:{Team, host.name}\n| summarize {\n  `Host name`=takeLast(host.name),\n  Critical=countIf(vulnerability.risk.level==\"CRITICAL\"),\n  High=countIf(vulnerability.risk.level==\"HIGH\"),\n  Vulnerabilities=count()\n}, by: {host.id, Team}\n| fields `Host name`, Critical, High, Vulnerabilities, Team, dt.source_entity=host.id\n| sort {Critical, direction:\"descending\"}, {High, direction:\"descending\"}, {Vulnerabilities, direction:\"descending\"}\n| limit 5",
+			"visualization": "table",
+			"visualizationSettings": {
+				"table": {
+					"hiddenColumns": [
+						[
+							"dt.source_entity"
+						]
+					],
+					"linewrapEnabled": true,
+					"lineWrapIds": [
+						[
+							"Host name"
+						]
+					],
+					"sortBy": [
+						{
+							"columnId": "[\"Host name\"]",
+							"direction": "ascending"
+						}
+					],
+					"columnWidths": {
+						"[\"Host name\"]": 236,
+						"[\"Team\"]": 162.7
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"240": {
+			"title": "Public internet exposure",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  exposure_statuses=collectDistinct(vulnerability.davis_assessment.exposure_status)\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.davis_assessment.exposure_status=if(in(\"PUBLIC_NETWORK\",exposure_statuses),\"PUBLIC_NETWORK\",\n                                                      else:if(in(\"ADJACENT_NETWORK\",exposure_statuses),\"ADJACENT_NETWORK\",\n                                                      else:if(in(\"NOT_DETECTED\",exposure_statuses),\"NOT_DETECTED\",\n                                                      else:\"NOT_AVAILABLE\")))\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {vulnerabilities=countIf(vulnerability.davis_assessment.exposure_status==\"PUBLIC_NETWORK\")}, \ntime: timestamp, interval:3h\n| fieldsAdd Vulnerabilities=arrayLast(vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Vulnerabilities",
+					"recordField": "Vulnerabilities",
+					"prefixIcon": "PublicExposureIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922064293
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"241": {
+			"title": "Reachable data assets",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  data_assets_statuses=collectDistinct(vulnerability.davis_assessment.data_assets_status)\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.davis_assessment.data_assets_status=if(in(\"REACHABLE\",data_assets_statuses),\"REACHABLE\",\n                                                      else:if(in(\"NOT_DETECTED\",data_assets_statuses),\"NOT_DETECTED\",\n                                                      else:\"NOT_AVAILABLE\"))\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {vulnerabilities=countIf(vulnerability.davis_assessment.data_assets_status==\"REACHABLE\")}, \ntime: timestamp, interval:3h\n| fieldsAdd Vulnerabilities=arrayLast(vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Vulnerabilities",
+					"recordField": "Vulnerabilities",
+					"prefixIcon": "AssetIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922074429
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"242": {
+			"title": "Vulnerable functions in use",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  function_in_use_statuses=collectDistinct(vulnerability.davis_assessment.vulnerable_function_status)\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.davis_assessment.vulnerable_function_status=if(in(\"IN_USE\",function_in_use_statuses),\"IN_USE\",\n                                                      else:if(in(\"NOT_IN_USE\",function_in_use_statuses),\"NOT_IN_USE\",\n                                                      else:\"NOT_AVAILABLE\"))\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {vulnerabilities=countIf(vulnerability.davis_assessment.vulnerable_function_status==\"IN_USE\", default:0)}, \ntime: timestamp, interval:3h\n| fieldsAdd Vulnerabilities=arrayLast(vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Vulnerabilities",
+					"recordField": "Vulnerabilities",
+					"prefixIcon": "VulnerableFunctionIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922085058
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"243": {
+			"title": "Public exploit published",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  vulnerability.davis_assessment.exploit_status=takeFirst(vulnerability.davis_assessment.exploit_status)\n},by: {vulnerability.display_id, timestamp=bin(timestamp, 3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {vulnerabilities=countIf(vulnerability.davis_assessment.exploit_status==\"AVAILABLE\")}, \ntime: timestamp, interval:3h\n| fieldsAdd Vulnerabilities=arrayLast(vulnerabilities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Vulnerabilities",
+					"recordField": "Vulnerabilities",
+					"prefixIcon": "ExploitIcon",
+					"sparklineSettings": {
+						"isVisible": false,
+						"color": {
+							"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+						},
+						"variant": "area",
+						"record": "vulnerabilities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922051162
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"244": {
+			"title": "Top 5 vulnerability types",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize \n{vulnerability.type=takeFirst(vulnerability.type)},\nby: {vulnerability.display_id}\n| summarize \nvulnerabilities=count(), by:{vulnerability.type}\n| sort vulnerabilities,direction:\"descending\"\n|limit 5",
+			"visualization": "categoricalBarChart",
+			"visualizationSettings": {
+				"chartSettings": {
+					"truncationMode": "middle",
+					"categoryOverrides": {
+						"NONE": {
+							"color": {
+								"Default": "var(--dt-colors-charts-categorical-color-05-default, #84859a)"
+							},
+							"added": 1701791339383
+						}
+					},
+					"categoricalBarChartSettings": {
+						"categoryAxisLabel": "vulnerability.type",
+						"categoryAxis": "vulnerability.type",
+						"valueAxis": "vulnerabilities",
+						"valueAxisLabel": "vulnerabilities"
+					}
+				}
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"enabled": false,
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"246": {
+			"title": "Affected entities",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  affected_entities=countDistinctExact(affected_entity.id),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| makeTimeseries {\n  entities=sum(affected_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922098294
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"247": {
+			"title": "Related hosts",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities=arrayRemoveNulls(collectDistinct(related_entities.hosts.ids, expand:true))\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  related_entities=arraySize(collectDistinct(related_entities, expand:true))\n}, by: {timestamp}\n| makeTimeseries {\n  entities=sum(related_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922128205
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"248": {
+			"title": "Related Kubernetes clusters",
+			"type": "data",
+			"query": "fetch security.events\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// now summarize on the vulnerability level per timestamp\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\"),\n  related_entities=arrayRemoveNulls(collectDistinct(related_entities.kubernetes_clusters.ids, expand:true))\n},by: {vulnerability.display_id, timestamp=bin(timestamp,3h)}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n  related_entities=arraySize(collectDistinct(related_entities, expand:true))\n}, by: {timestamp}\n| makeTimeseries {\n  entities=sum(related_entities)\n}, time: timestamp, interval:3h\n| fieldsAdd Entities=arrayLast(entities)",
+			"visualization": "singleValue",
+			"visualizationSettings": {
+				"singleValue": {
+					"labelMode": "none",
+					"label": "Entities",
+					"recordField": "Entities",
+					"alignment": "end",
+					"sparklineSettings": {
+						"isVisible": false,
+						"record": "entities"
+					},
+					"trend": {
+						"isVisible": true,
+						"upward": {
+							"Default": "var(--dt-colors-charts-diverging-red-blue-color-02-default, #ae132d)"
+						},
+						"downward": {
+							"Default": "var(--dt-colors-charts-diverging-red-green-color-10-default, #2a7453)"
+						},
+						"isRelative": false
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Entities",
+						"unitCategory": "unspecified",
+						"baseUnit": "count",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1771922148072
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"249": {
+			"title": "Top 5 products by vulnerability count",
+			"type": "data",
+			"query": "fetch security.events, from:toTimestamp($dt_timeframe_to)-30m, to:toTimestamp($dt_timeframe_to)\n| filter dt.system.bucket==\"default_securityevents_builtin\"\n| filter event.provider==\"Dynatrace\"\n| filter event.type==\"VULNERABILITY_STATE_REPORT_EVENT\"\n| filter event.level==\"ENTITY\"\n// filter for the latest snapshot per entity\n| dedup {vulnerability.display_id, affected_entity.id}, sort:{timestamp desc}\n| join [\n    fetch dt.entity.process_group_instance, from:now() - 2h\n    | fields entity.name, releasesVersion, process_group = instance_of[dt.entity.process_group], releasesBuildVersion, releasesProduct, releasesStage\n    | filter isNotNull(releasesVersion)\n    | fieldsAdd releaseVersion = parse(releasesVersion,\"\"\" \"ReleaseVersionInfo{version='\"LD:version\"'\"LD \"\"\")\n    | summarize entity.name = takeAny(entity.name), by:{\n                   process_group,\n                   releaseVersion,\n                   releasesBuildVersion,\n                   releasesProduct,\n                   releasesStage\n                 }\n    | fields entity.name, entity.id=process_group, Version=releaseVersion, Build=releasesBuildVersion, Stage=releasesStage, Product=releasesProduct\n], kind:leftouter, on:{left[affected_entity.id]==right[entity.id]}, fields:{entity.name,entity.id,Version,Build,Stage,Product}\n| fieldsAdd Product=coalesce(Product,\"-\"), Stage=coalesce(Stage,\"-\")\n// now summarize on the vulnerability level\n| sort {timestamp, direction:\"descending\"}\n| summarize\n{\n  vulnerability.stack=takeAny(vulnerability.stack),\n  vulnerability.type=takeAny(vulnerability.type),\n  vulnerability.parent.resolution.status=takeFirst(vulnerability.parent.resolution.status),\n  vulnerability.parent.mute.status=takeFirst(vulnerability.parent.mute.status),\n  vulnerability.risk.score=takeMax(if(vulnerability.mute.status!=\"MUTED\",vulnerability.risk.score,else:0)),\n  related_entities.kubernetes_workloads.names=arrayRemoveNulls(collectArray(related_entities.kubernetes_workloads.names, expand:true)),\n  affected_entity.vulnerable_component.names=arrayRemoveNulls(collectArray(affected_entity.vulnerable_component.name)),\n  nonMutedEntities=countIf(vulnerability.mute.status==\"NOT_MUTED\"),\n  openStatus=countIf(vulnerability.resolution.status==\"OPEN\")\n},by: {vulnerability.display_id, Product, Stage}\n| fieldsAdd vulnerability.resolution.status=if(vulnerability.parent.resolution.status==\"RESOLVED\",\"RESOLVED\",\n                   else:if(openStatus==0, \"RESOLVED\",\n                   else:\"OPEN\"))\n| fieldsAdd vulnerability.mute.status=if(vulnerability.parent.mute.status==\"MUTED\",\"MUTED\",\n                   else:if(nonMutedEntities==0, \"MUTED\",\n                   else:\"NOT_MUTED\"))\n| fieldsAdd vulnerability.risk.level=if(vulnerability.risk.score>=9,\"CRITICAL\",\n                                     else:if(vulnerability.risk.score>=7,\"HIGH\",\n                                     else:if(vulnerability.risk.score>=4,\"MEDIUM\",\n                                     else:if(vulnerability.risk.score>=0.1,\"LOW\",\n                                     else:\"NONE\"))))\n// filter based on the variables\n| filter in(vulnerability.resolution.status,$ResolutionStatus) \n         AND in(vulnerability.mute.status,$MuteStatus)\n         AND in(vulnerability.risk.level,$RiskLevel)\n         AND (in(\"All\",$StackLevel) OR in(vulnerability.stack,{$StackLevel}))\n         AND (in(\"All\",$Type) OR in(vulnerability.type,$Type))\n         AND (in(\"All\",$K8sWorkload) OR in(related_entities.kubernetes_workloads.names, $K8sWorkload))\n         AND (in(\"All\",$ComponentName) OR in($ComponentName, affected_entity.vulnerable_component.names))\n// start metric calculation\n| summarize {\n    Critical=countIf(vulnerability.risk.level==\"CRITICAL\"),\n    High=countIf(vulnerability.risk.level==\"HIGH\"),\n    Vulnerabilities=count()\n}, by:{Product, Stage}\n| sort {Critical, direction:\"descending\"}, {High, direction:\"descending\"}, {Vulnerabilities, direction:\"descending\"}\n| limit 5",
+			"visualization": "table",
+			"visualizationSettings": {
+				"table": {
+					"columnWidths": {
+						"[\"affected_entity.id\"]": 273.51251220703127,
+						"[\"Vulnerabilities\"]": 153,
+						"[\"Name\"]": 243,
+						"[\"entity.name\"]": 484,
+						"[\"id\"]": 403.8000183105469,
+						"[\"dt.source_entity\"]": 241,
+						"[\"Product\"]": 178
+					}
+				},
+				"unitsOverrides": [
+					{
+						"identifier": "Vulnerabilities",
+						"unitCategory": "unspecified",
+						"baseUnit": "none",
+						"displayUnit": null,
+						"decimals": 0,
+						"suffix": "",
+						"delimiter": false,
+						"added": 1704276407024
+					}
+				]
+			},
+			"querySettings": {
+				"maxResultRecords": 1000,
+				"defaultScanLimitGbytes": 500,
+				"maxResultMegaBytes": 100,
+				"defaultSamplingRatio": 10,
+				"enableSampling": false
+			},
+			"davis": {
+				"davisVisualization": {
+					"isAvailable": true
+				}
+			}
+		},
+		"250": {
+			"type": "markdown",
+			"content": "[i] Vulnerabilities with new affected entities detected."
+		},
+		"251": {
+			"type": "markdown",
+			"content": "Template version: 1.332"
+		}
+	},
+	"layouts": {
+		"195": {
+			"x": 3,
+			"y": 3,
+			"w": 7,
+			"h": 6
+		},
+		"196": {
+			"x": 0,
+			"y": 7,
+			"w": 3,
+			"h": 2
+		},
+		"209": {
+			"x": 0,
+			"y": 0,
+			"w": 24,
+			"h": 3
+		},
+		"215": {
+			"x": 0,
+			"y": 15,
+			"w": 24,
+			"h": 1
+		},
+		"224": {
+			"x": 0,
+			"y": 3,
+			"w": 3,
+			"h": 4
+		},
+		"225": {
+			"x": 10,
+			"y": 5,
+			"w": 3,
+			"h": 2
+		},
+		"226": {
+			"x": 10,
+			"y": 3,
+			"w": 3,
+			"h": 2
+		},
+		"227": {
+			"x": 0,
+			"y": 9,
+			"w": 3,
+			"h": 2
+		},
+		"228": {
+			"x": 0,
+			"y": 11,
+			"w": 3,
+			"h": 2
+		},
+		"233": {
+			"x": 21,
+			"y": 11,
+			"w": 3,
+			"h": 2
+		},
+		"234": {
+			"x": 21,
+			"y": 7,
+			"w": 3,
+			"h": 2
+		},
+		"235": {
+			"x": 21,
+			"y": 5,
+			"w": 3,
+			"h": 2
+		},
+		"236": {
+			"x": 0,
+			"y": 16,
+			"w": 24,
+			"h": 11
+		},
+		"239": {
+			"x": 13,
+			"y": 9,
+			"w": 8,
+			"h": 6
+		},
+		"240": {
+			"x": 10,
+			"y": 9,
+			"w": 3,
+			"h": 2
+		},
+		"241": {
+			"x": 10,
+			"y": 11,
+			"w": 3,
+			"h": 2
+		},
+		"242": {
+			"x": 10,
+			"y": 13,
+			"w": 3,
+			"h": 2
+		},
+		"243": {
+			"x": 10,
+			"y": 7,
+			"w": 3,
+			"h": 2
+		},
+		"244": {
+			"x": 3,
+			"y": 9,
+			"w": 7,
+			"h": 6
+		},
+		"246": {
+			"x": 21,
+			"y": 3,
+			"w": 3,
+			"h": 2
+		},
+		"247": {
+			"x": 21,
+			"y": 9,
+			"w": 3,
+			"h": 2
+		},
+		"248": {
+			"x": 21,
+			"y": 13,
+			"w": 3,
+			"h": 2
+		},
+		"249": {
+			"x": 13,
+			"y": 3,
+			"w": 8,
+			"h": 6
+		},
+		"250": {
+			"x": 0,
+			"y": 13,
+			"w": 3,
+			"h": 2
+		},
+		"251": {
+			"x": 0,
+			"y": 27,
+			"w": 24,
+			"h": 1
+		}
+	},
+	"importedWithCode": false,
+	"settings": {
+		"defaultTimeframe": {
+			"value": {
+				"from": "now()-7d",
+				"to": "now()"
+			},
+			"enabled": true
+		}
+	},
+	"annotations": []
+}
