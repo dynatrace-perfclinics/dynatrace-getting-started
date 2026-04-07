@@ -1,7 +1,10 @@
 # What is Dynatrace and How to get started
-This repository contains supporting material for the episode *What is Dynatrace and How to get started!*
 
-[![Watch it on YouTube](https://img.youtube.com/vi/rw8u3oZ4RdY/0.jpg)](https://www.youtube.com/watch?v=rw8u3oZ4RdY)
+If you are new to Dynatrace I recommend starting with "What is Dynatrace in 15 Minutes"
+
+[![Watch it on YouTube](https://img.youtube.com/vi/qo6vjyE-Ak0/0.jpg)](https://www.youtube.com/watch?v=qo6vjyE-Ak0)
+
+After you are familiar with the basics check out the content of this repository which provides  supporting material for the longer 1-hour episode [*What is Dynatrace and How to get started!*](https://www.youtube.com/watch?v=rw8u3oZ4RdY)
 
 [>> More tutorials on YouTube](https://bit.ly/oneagenttutorials) 
 
