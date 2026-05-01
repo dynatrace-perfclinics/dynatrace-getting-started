@@ -1,0 +1,112 @@
+{
+  "version": 21,
+  "variables": [],
+  "tiles": {
+    "1": {
+      "type": "markdown",
+      "content": "## Cert-Manager: Controller Health\nMonitors controller sync rates, reconcile throughput and latency, webhook performance, workqueue depth, and leader election status."
+    },
+    "2": {
+      "type": "data",
+      "title": "Controller Sync Rate",
+      "query": "timeseries syncCalls = sum(certmanager_controller_sync_call_count), by:{controller}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "3": {
+      "type": "data",
+      "title": "Controller Sync Error Rate",
+      "query": "timeseries syncErrors = sum(certmanager_controller_sync_error_count), by:{controller}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "4": {
+      "type": "data",
+      "title": "Reconcile Results by Type",
+      "query": "timeseries reconciles = sum(controller_runtime_reconcile_total), by:{result}",
+      "visualization": "barChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "5": {
+      "type": "data",
+      "title": "Reconcile Average Latency (seconds)",
+      "query": "timeseries avgLatency = avg(controller_runtime_reconcile_time_seconds), by:{controller}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "6": {
+      "type": "data",
+      "title": "Webhook Request Rate",
+      "query": "timeseries requests = sum(controller_runtime_webhook_requests_total), by:{webhook, code}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "7": {
+      "type": "data",
+      "title": "Webhook Latency (seconds)",
+      "query": "timeseries latency = avg(controller_runtime_webhook_latency_seconds), by:{webhook}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "8": {
+      "type": "data",
+      "title": "Workqueue Depth",
+      "query": "timeseries depth = max(workqueue_depth), by:{controller}",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "9": {
+      "type": "data",
+      "title": "Leader Election Status",
+      "query": "timeseries status = max(leader_election_master_status), by:{name}\n| fieldsAdd isLeader = arrayLast(status)\n| fields name, isLeader",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "10": {
+      "type": "data",
+      "title": "REST Client Error Responses",
+      "query": "timeseries errors = sum(rest_client_requests_total), by:{code, component}\n| filter startsWith(code, \"4\") or startsWith(code, \"5\")",
+      "visualization": "lineChart",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    }
+  },
+  "layouts": {
+    "1": {"x": 0, "y": 0, "w": 20, "h": 1},
+    "2": {"x": 0, "y": 1, "w": 10, "h": 7},
+    "3": {"x": 10, "y": 1, "w": 10, "h": 7},
+    "4": {"x": 0, "y": 8, "w": 10, "h": 7},
+    "5": {"x": 10, "y": 8, "w": 10, "h": 7},
+    "6": {"x": 0, "y": 15, "w": 10, "h": 7},
+    "7": {"x": 10, "y": 15, "w": 10, "h": 7},
+    "8": {"x": 0, "y": 22, "w": 13, "h": 7},
+    "9": {"x": 13, "y": 22, "w": 7, "h": 3},
+    "10": {"x": 13, "y": 25, "w": 7, "h": 4}
+  }
+}

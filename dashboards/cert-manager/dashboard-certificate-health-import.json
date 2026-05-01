@@ -1,0 +1,68 @@
+{
+  "version": 21,
+  "variables": [],
+  "tiles": {
+    "1": {
+      "type": "markdown",
+      "content": "## Cert-Manager: Certificate Health\nMonitors certificate expiry, renewal timelines, and readiness status for certificates and issuers."
+    },
+    "2": {
+      "type": "data",
+      "title": "Days Until Expiry",
+      "query": "timeseries notAfter = max(certmanager_certificate_not_after_timestamp_seconds), by:{name, exported_namespace}\n| fieldsAdd latestVal = arrayLast(notAfter)\n| fieldsAdd daysUntilExpiry = (latestVal - toLong(now()) / 1000000000.0) / 86400.0\n| fields name, exported_namespace, daysUntilExpiry\n| sort daysUntilExpiry asc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "3": {
+      "type": "data",
+      "title": "Days Until Renewal",
+      "query": "timeseries renewal = max(certmanager_certificate_renewal_timestamp_seconds), by:{name, exported_namespace}\n| fieldsAdd latestVal = arrayLast(renewal)\n| fieldsAdd daysUntilRenewal = (latestVal - toLong(now()) / 1000000000.0) / 86400.0\n| fields name, exported_namespace, daysUntilRenewal\n| sort daysUntilRenewal asc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "4": {
+      "type": "data",
+      "title": "Certificate Ready Status",
+      "query": "timeseries readyStatus = max(certmanager_certificate_ready_status), by:{name, exported_namespace, condition}\n| filter condition == \"True\"\n| fieldsAdd isReady = arrayLast(readyStatus)\n| fields name, exported_namespace, isReady\n| sort name asc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "5": {
+      "type": "data",
+      "title": "ClusterIssuer Ready Status",
+      "query": "timeseries readyStatus = max(certmanager_clusterissuer_ready_status), by:{name, condition}\n| filter condition == \"True\"\n| fieldsAdd isReady = arrayLast(readyStatus)\n| fields name, isReady\n| sort name asc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    },
+    "6": {
+      "type": "data",
+      "title": "Issuer Ready Status",
+      "query": "timeseries readyStatus = max(certmanager_issuer_ready_status), by:{name, exported_namespace, condition}\n| filter condition == \"True\"\n| fieldsAdd isReady = arrayLast(readyStatus)\n| fields name, exported_namespace, isReady\n| sort name asc",
+      "visualization": "table",
+      "visualizationSettings": {
+        "autoSelectVisualization": false
+      },
+      "querySettings": {}
+    }
+  },
+  "layouts": {
+    "1": {"x": 0, "y": 0, "w": 20, "h": 1},
+    "2": {"x": 0, "y": 1, "w": 10, "h": 6},
+    "3": {"x": 10, "y": 1, "w": 10, "h": 6},
+    "4": {"x": 0, "y": 7, "w": 20, "h": 6},
+    "5": {"x": 0, "y": 13, "w": 10, "h": 6},
+    "6": {"x": 10, "y": 13, "w": 10, "h": 6}
+  }
+}
