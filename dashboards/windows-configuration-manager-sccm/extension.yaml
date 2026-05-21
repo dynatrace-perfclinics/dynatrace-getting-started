@@ -1,0 +1,212 @@
+name: "custom:sms-data-extension"
+minDynatraceVersion: "1.303.0"
+author:
+  name: "Custom Extensions Creator SMS Data"
+version: "0.0.1"
+
+metrics:
+  # === SMS SITE SERVER ===
+  - key: "custom.sccm.inbox.file_current_count"
+    metadata:
+      displayName: "SMS Inbox - File Current Count"
+      unit: "Count"
+  - key: "custom.sccm.outbox.file_current_count"
+    metadata:
+      displayName: "SMS Outbox - File Current Count"
+      unit: "Count"
+  - key: "custom.sccm.inventory_loader.mifs_processed_per_minute"
+    metadata:
+      displayName: "SMS Inventory Data Loader - MIFs Processed/min"
+      unit: "PerMinute"
+  - key: "custom.sccm.software_inventory.sinvs_processed_per_minute"
+    metadata:
+      displayName: "SMS Software Inventory Processor - SINVs Processed/min"
+      unit: "PerMinute"
+  - key: "custom.sccm.status_manager.processed_per_sec"
+    metadata:
+      displayName: "SMS Status Messages - Processed/sec"
+      unit: "PerSecond"
+  - key: "custom.sccm.discovery.non_user_ddrs_per_minute"
+    metadata:
+      displayName: "SMS Discovery Data Manager - Non-User DDRs Processed/min"
+      unit: "PerMinute"
+
+  # === SMS MANAGEMENT POINT INVENTORY ===
+  - key: "custom.sccm.mp.hinv.total_reports_per_sec"
+    metadata:
+      displayName: "SMS MP HInv Manager - Total Reports/sec"
+      unit: "PerSecond"
+  - key: "custom.sccm.mp.sinv.total_reports_per_sec"
+    metadata:
+      displayName: "SMS MP SInv Manager - Total Reports/sec"
+      unit: "PerSecond"
+  - key: "custom.sccm.mp.ddr.total_reports_per_sec"
+    metadata:
+      displayName: "SMS MP DDR Manager - Total Reports/sec"
+      unit: "PerSecond"
+
+  # === WINDOWS OS ===
+  - key: "custom.sccm.os.memory.available_mbytes"
+    metadata:
+      displayName: "Memory - Available MBytes"
+      unit: "MegaByte"
+
+wmi:
+
+  # FIX: was SMSINBOX_SMSInbox — correct provider is SMSINBOXMONITOR
+  - group: "SMS_Inbox"
+    interval:
+      minutes: 1
+    featureSet: "inbox"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "InboxFileCount"
+        query: "SELECT Name, FileCurrentCount FROM Win32_PerfFormattedData_SMSINBOXMONITOR_SMSInbox"
+        dimensions:
+          - key: "sms.inbox.name"
+            value: "column:Name"
+        metrics:
+          - key: "custom.sccm.inbox.file_current_count"
+            value: "column:FileCurrentCount"
+            type: "gauge"
+
+  # FIX: was SMSOUTBOX_SMSOutbox — correct provider is SMSMPFILEDISPATCHMANAGER
+  - group: "SMS_Outbox"
+    interval:
+      minutes: 1
+    featureSet: "outbox"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "OutboxFileCount"
+        query: "SELECT Name, FileCurrentCount FROM Win32_PerfFormattedData_SMSMPFILEDISPATCHMANAGER_SMSOutbox"
+        dimensions:
+          - key: "sms.outbox.name"
+            value: "column:Name"
+        metrics:
+          - key: "custom.sccm.outbox.file_current_count"
+            value: "column:FileCurrentCount"
+            type: "gauge"
+
+  - group: "SMS_InventoryDataLoader"
+    interval:
+      minutes: 1
+    featureSet: "inventoryLoader"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "MIFsProcessed"
+        query: "SELECT MIFsProcessedperminute FROM Win32_PerfFormattedData_SMSINVENTORYDATALOADER_SMSInventoryDataLoader"
+        metrics:
+          - key: "custom.sccm.inventory_loader.mifs_processed_per_minute"
+            value: "column:MIFsProcessedperminute"
+            type: "gauge"
+
+  - group: "SMS_SoftwareInventoryProcessor"
+    interval:
+      minutes: 1
+    featureSet: "softwareInventory"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "SINVsProcessed"
+        query: "SELECT SINVsProcessedperminute FROM Win32_PerfFormattedData_SMSSOFTWAREINVENTORYPROCESSOR_SMSSoftwareInventoryProcessor"
+        metrics:
+          - key: "custom.sccm.software_inventory.sinvs_processed_per_minute"
+            value: "column:SINVsProcessedperminute"
+            type: "gauge"
+
+  # FIX: was SMSStatusManager_SMSStatusManager — correct class is SMSSTATUSMANAGER_SMSStatusMessages
+  # This class has instances (*) so Name is included as a dimension
+  - group: "SMS_StatusMessages"
+    interval:
+      minutes: 1
+    featureSet: "statusManager"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "StatusProcessed"
+        query: "SELECT Name, Processedpersec FROM Win32_PerfFormattedData_SMSSTATUSMANAGER_SMSStatusMessages"
+        dimensions:
+          - key: "sms.status.component"
+            value: "column:Name"
+        metrics:
+          - key: "custom.sccm.status_manager.processed_per_sec"
+            value: "column:Processedpersec"
+            type: "gauge"
+
+  # ============================================================
+  # SMS DISCOVERY DATA MANAGER
+  # Deploy to: VIRTSCM-CSS008
+  # ============================================================
+  - group: "SMS_DiscoveryDataManager"
+    interval:
+      minutes: 1
+    featureSet: "discoveryDataManager"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "DDRsProcessed"
+        query: "SELECT NonUserDDRsProcessedperminute FROM Win32_PerfFormattedData_SMSDISCOVERYDATAMANAGER_SMSDiscoveryDataManager"
+        metrics:
+          - key: "custom.sccm.discovery.non_user_ddrs_per_minute"
+            value: "column:NonUserDDRsProcessedperminute"
+            type: "gauge"
+
+  # ============================================================
+  # SMS MANAGEMENT POINT INVENTORY GROUPS
+  # Deploy to: VIRTSCM-CSS008 (Management Point)
+  # All three classes are single-instance — no Name dimension needed
+  # ============================================================
+  - group: "SMS_MPInventory"
+    interval:
+      minutes: 1
+    featureSet: "mpInventory"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "HInvMgr"
+        query: "SELECT TotalReportspersec FROM Win32_PerfFormattedData_SmsMPInventory_SMSMPHinvMgr"
+        metrics:
+          - key: "custom.sccm.mp.hinv.total_reports_per_sec"
+            value: "column:TotalReportspersec"
+            type: "gauge"
+      - subgroup: "SInvMgr"
+        query: "SELECT TotalReportspersec FROM Win32_PerfFormattedData_SmsMPInventory_SMSMPSinvMgr"
+        metrics:
+          - key: "custom.sccm.mp.sinv.total_reports_per_sec"
+            value: "column:TotalReportspersec"
+            type: "gauge"
+      - subgroup: "DdrMgr"
+        query: "SELECT TotalReportspersec FROM Win32_PerfFormattedData_SmsMPInventory_SMSMPDdrMgr"
+        metrics:
+          - key: "custom.sccm.mp.ddr.total_reports_per_sec"
+            value: "column:TotalReportspersec"
+            type: "gauge"
+
+  # ============================================================
+  # WINDOWS OS GROUPS
+  # Deploy to: all servers
+  # ============================================================
+  - group: "OS_Memory"
+    interval:
+      minutes: 1
+    featureSet: "osMemory"
+    dimensions:
+      - key: "host.name"
+        value: "this:device.host"
+    subgroups:
+      - subgroup: "Memory"
+        query: "SELECT AvailableMBytes FROM Win32_PerfFormattedData_PerfOS_Memory"
+        metrics:
+          - key: "custom.sccm.os.memory.available_mbytes"
+            value: "column:AvailableMBytes"
+            type: "gauge"
