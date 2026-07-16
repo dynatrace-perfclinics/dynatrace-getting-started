@@ -27,7 +27,7 @@ TODO
 
 ### 1. Start Valkey
 
-Notice that you pass the `valkey.conf` which sets the maximum memory. If max memory is unset, the dashboard will report `0` and the threshold and alerts won't work.
+Notice that you pass the [valkey.conf](valkey.conf) which sets the maximum memory. If max memory is unset, the dashboard will report `0` and the threshold and alerts won't work.
 
 ```
 docker run --rm -d --name valkey -p 6379:6379 \
