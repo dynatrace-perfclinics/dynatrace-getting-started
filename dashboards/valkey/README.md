@@ -16,7 +16,7 @@ Valkey  << Prometheus Exporter >> OTEL Collector >> Dynatrace
 How it works:
 
 * Valkey runs as a Docker image
-* The Prometheus exporter runs as a second Docker image and effectively does a perioud `valkey-cli info` call, translates the details into Prometheus metrics at `http://localhost:9121/metrics`
+* The Prometheus exporter runs as a second Docker image and effectively does a periodic `valkey-cli info` call, translates the details into Prometheus metrics at `http://localhost:9121/metrics`
 * An OpenTelemetry collector runs as a third Docker image and retrieves (scrapes) the valkey metrics. Teh collector sends those metrics into Dynatrace
 
 Note: You'll need to generate a Dynatrace API Access token with `metrics.ingest` permissions.
