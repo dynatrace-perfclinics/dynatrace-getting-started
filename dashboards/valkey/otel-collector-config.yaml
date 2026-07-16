@@ -1,0 +1,42 @@
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: valkey
+          scrape_interval: 30s
+          metrics_path: /metrics
+          static_configs:
+            - targets: ['localhost:9121']
+
+processors:
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 256
+  batch:
+    timeout: 30s
+  filter/drop_summary:
+    metrics:
+      metric:
+        - type == METRIC_DATA_TYPE_SUMMARY
+  cumulativetodelta:
+  resource:
+    attributes:
+      - key: service.name
+        value: valkey
+        action: upsert
+      - key: service.namespace
+        value: valkey
+        action: upsert
+
+exporters:
+  otlphttp:
+    endpoint: ${DT_ENVIRONMENT_URL}/api/v2/otlp
+    headers:
+      Authorization: "Api-Token ${DT_API_TOKEN}"
+
+service:
+  pipelines:
+    metrics:
+      receivers: [prometheus]
+      processors: [memory_limiter, filter/drop_summary, cumulativetodelta, batch, resource]
+      exporters: [otlphttp]
