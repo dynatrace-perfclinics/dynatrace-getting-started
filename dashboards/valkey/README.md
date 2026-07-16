@@ -1,5 +1,12 @@
 # Valkey Observability
 
+Dashboard + Anomaly detectors for Valkey.
+
+![valkey dashboard 1](images/valkey-dashboard-1.png)
+![valkey dashboard 2](images/valkey-dashboard-2.png)
+![valkey dashboard 3](images/valkey-dashboard-3.png)
+![valkey dashboard 4](images/valkey-dashboard-4.png)
+
 Observability of [Valkey](https://valkey.io)
 
 ```
