@@ -55,13 +55,18 @@ You can make sure it works: `curl http://localhost:9121/metrics` should return a
 
 ### 3. Start OTEL Collector
 
-Start the OTEL collector which is configured via otel-collector-config.yaml to scrape the Prometheus metrics and send them into Dynatrace.
-Notice that the collector configuration is set to automatically translate any cumulative metrics to delta format and to drop any metrics of type summary.
+Start the OTEL collector which is configured via [otel-collector-config.yaml](otel-collector-config.yaml) to scrape the Prometheus metrics and send them into Dynatrace.
+
+Notes:
+
+1. You need to adjust the DT_ENVIRONMENT_URL and DT_API_TOKEN as appropriate for your environment
+2. The [collector configuration](otel-collector-config.yaml) is set to automatically translate any cumulative metrics to delta format and to drop any metrics of type summary.
 
 ```
 docker run --rm --network host \
   -v $(pwd)/otel-collector-config.yaml:/etc/otel/config.yaml \
+  -e DT_ENVIRONMENT_URL=https://abc12345.live.dynatrace.com \
   -e DT_API_TOKEN=dt0c01.******.******* \
-  otel/opentelemetry-collector-contrib:latest \
+  dynatrace/dynatrace-otel-collector:latest \
   --config /etc/otel/config.yaml
 ```
