@@ -1,0 +1,659 @@
+id: 45f2d063-9373-44d7-9942-033c7cb04cb1
+name: "Valkey"
+type: dashboard
+content:
+  annotations: []
+  importedWithCode: false
+  settings:
+    defaultTimeframe:
+      enabled: true
+      value:
+        from: now()-2h
+        to: now()
+  layouts:
+    "1":
+      x: 0
+      "y": 0
+      w: 24
+      h: 2
+    "2":
+      x: 0
+      "y": 2
+      w: 6
+      h: 3
+    "3":
+      x: 6
+      "y": 2
+      w: 6
+      h: 3
+    "4":
+      x: 12
+      "y": 2
+      w: 6
+      h: 3
+    "5":
+      x: 18
+      "y": 2
+      w: 6
+      h: 3
+    "6":
+      x: 0
+      "y": 5
+      w: 24
+      h: 2
+    "7":
+      x: 0
+      "y": 7
+      w: 12
+      h: 6
+    "8":
+      x: 12
+      "y": 7
+      w: 12
+      h: 6
+    "9":
+      x: 0
+      "y": 13
+      w: 24
+      h: 2
+    "10":
+      x: 0
+      "y": 15
+      w: 16
+      h: 6
+    "11":
+      x: 16
+      "y": 15
+      w: 8
+      h: 6
+    "12":
+      x: 0
+      "y": 21
+      w: 24
+      h: 2
+    "13":
+      x: 0
+      "y": 23
+      w: 12
+      h: 6
+    "14":
+      x: 12
+      "y": 23
+      w: 12
+      h: 6
+    "15":
+      x: 0
+      "y": 29
+      w: 24
+      h: 2
+    "16":
+      x: 0
+      "y": 31
+      w: 8
+      h: 3
+    "17":
+      x: 8
+      "y": 31
+      w: 8
+      h: 3
+    "18":
+      x: 16
+      "y": 31
+      w: 8
+      h: 3
+    "19":
+      x: 0
+      "y": 34
+      w: 12
+      h: 6
+    "20":
+      x: 12
+      "y": 34
+      w: 12
+      h: 6
+    "21":
+      x: 0
+      "y": 40
+      w: 24
+      h: 2
+    "22":
+      x: 0
+      "y": 42
+      w: 12
+      h: 6
+    "23":
+      x: 12
+      "y": 42
+      w: 12
+      h: 6
+    "24":
+      x: 0
+      "y": 48
+      w: 24
+      h: 2
+    "25":
+      x: 0
+      "y": 50
+      w: 12
+      h: 6
+    "26":
+      x: 12
+      "y": 50
+      w: 6
+      h: 3
+    "27":
+      x: 18
+      "y": 50
+      w: 6
+      h: 3
+    "28":
+      x: 12
+      "y": 53
+      w: 12
+      h: 3
+    "29":
+      x: 0
+      "y": 57
+      w: 24
+      h: 2
+    "30":
+      x: 0
+      "y": 59
+      w: 6
+      h: 6
+    "31":
+      x: 6
+      "y": 59
+      w: 18
+      h: 6
+    "32":
+      x: 0
+      "y": 65
+      w: 24
+      h: 2
+    "33":
+      x: 0
+      "y": 67
+      w: 12
+      h: 6
+  tiles:
+    "1":
+      title: ""
+      type: markdown
+      content: "## Valkey Overview\nKey health metrics for your Valkey instance"
+    "2":
+      title: "Connected Clients"
+      description: "Number of client connections currently open to this Valkey instance. Above 10,000 indicates a connection storm risk."
+      type: data
+      query: |
+        timeseries ts = max(redis_connected_clients), from:now()-5m
+        | fields clients = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: clients
+        thresholds:
+          - field: clients
+            id: 1
+            isEnabled: true
+            rules:
+              - { color: { Default: "var(--dt-colors-charts-status-ideal-default, #2f6862)" }, comparator: "<", id: 0, value: 10000 }
+              - { color: { Default: "var(--dt-colors-charts-status-critical-default, #c62239)" }, comparator: ">=", id: 1, value: 10000 }
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "3":
+      title: "DB Keys"
+      description: "Total number of keys stored across all databases"
+      type: data
+      query: |
+        timeseries ts = max(redis_db_keys), from:now()-5m
+        | fields keys = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: keys
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "4":
+      title: "Memory Utilization %"
+      description: "Percentage of maxmemory in use. Above 85% triggers key eviction based on the configured eviction policy. Shows 0% when maxmemory is not set. See [eviction docs](https://valkey.io/docs/manual/eviction/)."
+      type: data
+      query: |
+        timeseries used = avg(redis_memory_used_bytes), max_mem = avg(redis_memory_max_bytes), from:now()-5m
+        | fields u = arrayLast(used), m = arrayLast(max_mem)
+        | fieldsAdd pct = if(m > 0, then:round(u / m * 100, decimals:1), else:0.0)
+        | fields pct
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: pct
+        thresholds:
+          - field: pct
+            id: 1
+            isEnabled: true
+            rules:
+              - { color: { Default: "var(--dt-colors-charts-status-ideal-default, #2f6862)" }, comparator: "<=", id: 0, value: 70 }
+              - { color: { Default: "var(--dt-colors-charts-status-warning-default, #eea53c)" }, comparator: "<=", id: 1, value: 85 }
+              - { color: { Default: "var(--dt-colors-charts-status-critical-default, #c62239)" }, comparator: ">", id: 2, value: 85 }
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "5":
+      title: "Uptime (hours)"
+      description: "Time since the Valkey process last started"
+      type: data
+      query: |
+        timeseries ts = avg(redis_uptime_in_seconds), from:now()-5m
+        | fields uptime_hours = round(arrayLast(ts) / 3600, decimals:1)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: uptime_hours
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "6":
+      title: ""
+      type: markdown
+      content: "## Clients & Commands"
+    "7":
+      title: "Clients"
+      description: "Active and blocked client connections over time. Blocked clients are waiting on a blocking command such as BLPOP."
+      type: data
+      query: |
+        timeseries connected = avg(redis_connected_clients), blocked = avg(redis_blocked_clients)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "8":
+      title: "Commands"
+      description: "Total commands processed per scrape interval"
+      type: data
+      query: |
+        timeseries commands = avg(redis_commands_total)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "9":
+      title: ""
+      type: markdown
+      content: "## Memory"
+    "10":
+      title: "Memory Usage (bytes)"
+      description: "Used memory, RSS memory, and configured maxmemory limit over time. RSS above used indicates fragmentation; used near max means eviction is imminent."
+      type: data
+      query: |
+        timeseries used = avg(redis_memory_used_bytes), rss = avg(redis_memory_used_rss_bytes), max = avg(redis_memory_max_bytes)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "11":
+      title: "Fragmentation Ratio"
+      description: "Ratio of RSS to used memory. Well above 1.0 means fragmentation is wasting RAM; below 1.0 means the OS has swapped Valkey memory to disk. See [memory optimization docs](https://valkey.io/docs/manual/memory-optimization/)."
+      type: data
+      query: |
+        timeseries frag = avg(redis_mem_fragmentation_ratio)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "12":
+      title: ""
+      type: markdown
+      content: "## Keyspace & Evictions"
+    "13":
+      title: "Keyspace Hits vs Misses"
+      description: "Cache hits and misses per scrape interval. A high miss rate relative to hits indicates keys are expiring or being evicted before they can be read."
+      type: data
+      query: |
+        timeseries hits = max(redis_keyspace_hits_total), misses = max(redis_keyspace_misses_total)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "14":
+      title: "Evictions & Expirations"
+      description: "Keys evicted by the maxmemory policy and keys expired by TTL per scrape interval. Sustained evictions mean maxmemory is too low for your working set. See [eviction docs](https://valkey.io/docs/manual/eviction/)."
+      type: data
+      query: |
+        timeseries evicted = max(redis_evicted_keys_total), expired = max(redis_expired_keys_total)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "15":
+      title: ""
+      type: markdown
+      content: "## Replication & Persistence"
+    "16":
+      title: "Connected Replicas"
+      description: "Number of replica instances currently connected and replicating from this primary"
+      type: data
+      query: |
+        timeseries ts = max(redis_connected_slaves), from:now()-5m
+        | fields replicas = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: replicas
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "17":
+      title: "Unsaved RDB Changes"
+      description: "Write operations since the last RDB snapshot. A high number increases data loss risk if the process crashes before the next save. See [persistence docs](https://valkey.io/docs/manual/persistence/)."
+      type: data
+      query: |
+        timeseries ts = avg(redis_rdb_changes_since_last_save), from:now()-5m
+        | fields changes = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: changes
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "18":
+      title: "Last BGSave (s)"
+      description: "Duration of the most recent background RDB save in seconds. -1 means no save has completed yet."
+      type: data
+      query: |
+        timeseries ts = avg(redis_rdb_last_bgsave_duration_sec), from:now()-5m
+        | fields duration = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: duration
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "19":
+      title: "Replication Offset"
+      description: "Byte position in the replication stream. Compare with replica offsets to measure replication lag. See [replication docs](https://valkey.io/docs/manual/replication/)."
+      type: data
+      query: |
+        timeseries offset = avg(redis_master_repl_offset)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "20":
+      title: "Replication Backlog (bytes)"
+      description: "Size of the replication backlog buffer. Replicas that fall behind by more than this can only reconnect via a full resync. See [replication docs](https://valkey.io/docs/manual/replication/)."
+      type: data
+      query: |
+        timeseries backlog = avg(redis_replication_backlog_bytes)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "21":
+      title: ""
+      type: markdown
+      content: "## Network & CPU"
+    "22":
+      title: "Network I/O (bytes)"
+      description: "Raw bytes received from and sent to clients per scrape interval. Spikes here often correlate with large key reads/writes or bulk operations."
+      type: data
+      query: |
+        timeseries input = avg(redis_net_input_bytes_total), output = avg(redis_net_output_bytes_total)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "23":
+      title: "CPU Time (seconds)"
+      description: "Cumulative CPU consumed by Valkey in kernel (sys) and user mode. Sustained high sys CPU can indicate excessive context switching or syscall overhead."
+      type: data
+      query: |
+        timeseries sys = avg(redis_cpu_sys_seconds_total), user = avg(redis_cpu_user_seconds_total)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: true
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "24":
+      title: ""
+      type: markdown
+      content: "## Slow Log & Diagnostics"
+    "25":
+      title: "Slow Log Length"
+      description: "Number of entries in the slow log — commands that exceeded the `slowlog-log-slower-than` threshold. A growing count means commands are taking too long. See [SLOWLOG docs](https://valkey.io/commands/slowlog/)."
+      type: data
+      query: |
+        timeseries slowlog = avg(redis_slowlog_length)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "26":
+      title: "AOF Enabled"
+      description: "Whether Append-Only File persistence is active (1 = on, 0 = off). AOF logs every write and provides stronger durability than RDB. See [persistence docs](https://valkey.io/docs/manual/persistence/)."
+      type: data
+      query: |
+        timeseries ts = avg(redis_aof_enabled), from:now()-5m
+        | fields enabled = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: enabled
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "28":
+      title: "Cluster State"
+      description: "Health of the cluster (1 = ok, 0 = degraded/fail). A non-ok state means the cluster cannot accept writes. Only populated when cluster mode is enabled. See [cluster docs](https://valkey.io/docs/manual/scaling/)."
+      type: data
+      query: |
+        timeseries ts = max(redis_cluster_state), from:now()-5m
+        | fields state = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: state
+        thresholds:
+          - field: state
+            id: 1
+            isEnabled: true
+            rules:
+              - { color: { Default: "var(--dt-colors-charts-status-critical-default, #c62239)" }, comparator: "<", id: 0, value: 1 }
+              - { color: { Default: "var(--dt-colors-charts-status-ideal-default, #2f6862)" }, comparator: ">=", id: 1, value: 1 }
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "29":
+      title: ""
+      type: markdown
+      content: "## Latency"
+    "30":
+      title: "p99 Latency (ms)"
+      description: "99th percentile command duration in milliseconds. Above 1ms indicates a tail latency spike — investigate slow commands with SLOWLOG GET."
+      type: data
+      query: |
+        timeseries ts = percentile(redis_commands_duration_seconds_total, 99, rollup:avg), from:now()-5m
+        | fields p99_ms = round(arrayLast(ts) * 1000, decimals:2)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: p99_ms
+        thresholds:
+          - field: p99_ms
+            id: 1
+            isEnabled: true
+            rules:
+              - { color: { Default: "var(--dt-colors-charts-status-ideal-default, #2f6862)" }, comparator: "<=", id: 0, value: 1 }
+              - { color: { Default: "var(--dt-colors-charts-status-critical-default, #c62239)" }, comparator: ">", id: 1, value: 1 }
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "31":
+      title: "p99 Latency trend"
+      description: "99th percentile command latency over time. Sustained spikes above 1ms warrant investigation. See [latency docs](https://valkey.io/docs/manual/latency/)."
+      type: data
+      query: |
+        timeseries p99_sec = percentile(redis_commands_duration_seconds_total, 99, rollup:avg)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+        unitsOverrides:
+          - identifier: p99_sec
+            baseUnit: second
+            displayUnit: null
+            decimals: 2
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "32":
+      title: ""
+      type: markdown
+      content: "## I/O Threads"
+    "33":
+      title: "Active I/O Threads"
+      description: "Number of I/O threads actively processing requests. Requires `io-threads > 1` in valkey.conf to be non-zero. If active threads approach your configured total, threads are saturated. See [threading docs](https://valkey.io/docs/manual/io-threads/)."
+      type: data
+      query: |
+        timeseries threads = avg(redis_io_threads_active)
+      visualization: lineChart
+      visualizationSettings:
+        autoSelectVisualization: false
+        chartSettings:
+          legend:
+            position: bottom
+            showLegend: false
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
+    "27":
+      title: "Cluster Enabled"
+      description: "Whether Valkey cluster mode is active (1 = on, 0 = standalone). Cluster mode shards data across nodes for horizontal scaling. See [cluster docs](https://valkey.io/docs/manual/scaling/)."
+      type: data
+      query: |
+        timeseries ts = avg(redis_cluster_enabled), from:now()-5m
+        | fields enabled = arrayLast(ts)
+      visualization: singleValue
+      visualizationSettings:
+        autoSelectVisualization: false
+        singleValue:
+          showLabel: false
+          recordField: enabled
+      davis:
+        enabled: false
+        davisVisualization:
+          isAvailable: true
