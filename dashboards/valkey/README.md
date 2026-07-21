@@ -66,7 +66,8 @@ Start the OTEL collector which is configured via [otel-collector-config.yaml](ot
 Notes:
 
 1. You need to adjust the DT_ENVIRONMENT_URL and DT_API_TOKEN as appropriate for your environment
-2. The [collector configuration](otel-collector-config.yaml) is set to automatically translate any cumulative metrics to delta format and to drop any metrics of type summary.
+    a. `DT_API_TOKEN` needs `ingest.metrics` permissions
+3. The [collector configuration](otel-collector-config.yaml) is set to automatically translate any cumulative metrics to delta format and to drop any metrics of type summary.
 
 ```
 docker run --rm --network host \
