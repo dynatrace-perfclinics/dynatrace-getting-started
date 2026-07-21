@@ -59,6 +59,8 @@ You can make sure it works: `curl http://localhost:9121/metrics` should return a
 
 ### 3. Start OTEL Collector
 
+First download [otel-collector-config.yaml](otel-collector-config.yaml).
+
 Start the OTEL collector which is configured via [otel-collector-config.yaml](otel-collector-config.yaml) to scrape the Prometheus metrics and send them into Dynatrace.
 
 Notes:
