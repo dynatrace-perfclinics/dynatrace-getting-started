@@ -47,6 +47,8 @@ valkey-cli set foo "bar"
 valkey-cli get foo
 ```
 
+Now type `exit` to exit out of the valkey container.
+
 ### 2. Start Prometheus Exporter
 
 ```
