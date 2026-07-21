@@ -1,0 +1,24 @@
+schemaId: "builtin:anomaly-detection.metric-events"
+schemaVersion: 1.0.19
+scope: environment
+value:
+  enabled: true
+  eventTemplate:
+    davisMerge: false
+    description: "Valkey used memory has exceeded 85% of maxmemory on {dims:host}. Eviction is imminent if the policy is set (e.g. allkeys-lru). Current usage: {severity}%."
+    eventType: RESOURCE
+    metadata: []
+    title: "Valkey: Approaching eviction threshold (>85% memory)"
+  modelProperties:
+    alertCondition: ABOVE
+    alertOnNoData: false
+    dealertingSamples: 5
+    samples: 5
+    threshold: 85
+    type: STATIC_THRESHOLD
+    violatingSamples: 3
+  queryDefinition:
+    # redis_memory_used_bytes / redis_memory_max_bytes * 100
+    metricSelector: "(redis_memory_used_bytes / redis_memory_max_bytes * 100):splitBy()"
+    type: METRIC_SELECTOR
+  summary: "Valkey: Approaching eviction threshold (>85% memory)"
