@@ -1,0 +1,27 @@
+schemaId: "builtin:anomaly-detection.metric-events"
+schemaVersion: 1.0.19
+scope: environment
+value:
+  # Requires Valkey 9.1+ with io-threads configured > 1 in valkey.conf.
+  # With the default of 1 thread, this ratio is always 0 or 100 — set io-threads >= 4
+  # before enabling to get meaningful signal. Metric: redis_io_threads_active / redis_config_io_threads * 100.
+  enabled: true
+  eventTemplate:
+    davisMerge: false
+    description: "Valkey I/O thread utilisation has exceeded 80% on {dims:host}. All configured I/O threads are saturated — consider increasing io-threads in valkey.conf or reducing connection load. Current utilisation: {severity}%."
+    eventType: RESOURCE
+    metadata: []
+    title: "Valkey: I/O threads saturated (>80% utilisation)"
+  modelProperties:
+    alertCondition: ABOVE
+    alertOnNoData: false
+    dealertingSamples: 5
+    samples: 5
+    threshold: 80
+    type: STATIC_THRESHOLD
+    violatingSamples: 3
+  queryDefinition:
+    # redis_io_threads_active / redis_config_io_threads * 100 = utilisation %
+    metricSelector: "(redis_io_threads_active / redis_config_io_threads * 100):splitBy()"
+    type: METRIC_SELECTOR
+  summary: "Valkey: I/O threads saturated (>80% utilisation)"
