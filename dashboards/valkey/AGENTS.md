@@ -34,6 +34,18 @@ dtctl doctor
 `DYNATRACE_BASE_URL` is the environment URL (e.g. `https://abc12345.apps.dynatrace.com`).
 The token must have `Read settings` and `Write settings` scopes.
 
+### 3. Install Agent Skills
+
+It's important to install the agent skills so you know how to work with Dynatrace via dtctl.
+
+You can install using the standard `.agents` syntax or client specific (see `--for` flag).
+
+Ask the user if unsure.
+
+```
+dtctl skills install --cross-client
+```
+
 ## Apply Alert Configurations
 
 ```bash
