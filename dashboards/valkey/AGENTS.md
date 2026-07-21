@@ -45,29 +45,27 @@ Ask the user if unsure.
 ```
 dtctl skills install --cross-client
 ```
+## Apply Configurations
 
-## Apply Alert Configurations
+### Dashboard
+```bash
+dtctl apply -f dashboards/valkey-dashboard.yaml --plain
+```
+
+### Anomaly Detectors
+`dtctl apply` does not support `builtin:davis.anomaly-detectors`. Use `create` instead:
 
 ```bash
-for f in alerts/valkey-*.yaml; do
-  echo "Applying $f"
-  dtctl apply -f "$f" --plain
+for f in anomaly-detectors/valkey-*.yaml; do
+  echo "Creating $(basename $f)"
+  dtctl create anomaly-detector -f "$f" --plain
 done
 ```
 
-Creates five metric events under `builtin:anomaly-detection.metric-events`. Re-running is safe — `dtctl apply` is idempotent.
+Re-running is safe — each file carries its `objectId`, so dtctl will update the existing detector rather than create a duplicate.
 
-## Alert Reference
+> **Note:** Each detector file includes `executionSettings.actor: c235362c-eb2f-4157-b6da-6814fb842534`.
+> This is the environment's automation service user and is required — the API rejects requests where this field is absent.
+> If deploying to a different environment, replace this value with the target environment's service user ID,
+> which you can find by running `dtctl get anomaly-detectors -o yaml | grep actor` against an existing detector.
 
-| File | Condition | Severity | Enabled |
-|---|---|---|---|
-| `alerts/valkey-memory-pressure.yaml` | `used_memory / maxmemory > 85%` | RESOURCE | yes |
-| `alerts/valkey-connection-storm.yaml` | `connected_clients > 10,000` | RESOURCE | yes |
-| `alerts/valkey-cluster-degraded.yaml` | `cluster_state != ok` | AVAILABILITY | **no** |
-| `alerts/valkey-tail-latency.yaml` | `latency p99 > 1ms` | SLOWDOWN | yes |
-| `alerts/valkey-io-threads-saturated.yaml` | `io_threads_active > 80%` | RESOURCE | yes |
-
-## Known Limitations
-
-- **Cluster alert is disabled.** `valkey-cluster-degraded.yaml` ships with `enabled: false` because this instance runs in standalone mode. Enable it and update the `metricSelector` only after cluster mode is configured in `valkey.conf`.
-- **I/O thread alert requires `io-threads >= 4`.** With the default of 1 thread the utilisation metric is binary. Update `valkey.conf` before relying on this alert for capacity signals.
