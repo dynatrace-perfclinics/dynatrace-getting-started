@@ -1,0 +1,23 @@
+schemaId: "builtin:anomaly-detection.metric-events"
+schemaVersion: 1.0.19
+scope: environment
+value:
+  enabled: true
+  eventTemplate:
+    davisMerge: false
+    description: "Valkey connected clients has exceeded 10,000 on {dims:host}. This equals the default maxclients limit — new connections will be rejected. Current count: {severity}."
+    eventType: RESOURCE
+    metadata: []
+    title: "Valkey: Connection storm risk (>10,000 clients)"
+  modelProperties:
+    alertCondition: ABOVE
+    alertOnNoData: false
+    dealertingSamples: 3
+    samples: 3
+    threshold: 10000
+    type: STATIC_THRESHOLD
+    violatingSamples: 2
+  queryDefinition:
+    metricSelector: "redis_connected_clients:splitBy()"
+    type: METRIC_SELECTOR
+  summary: "Valkey: Connection storm risk (>10,000 clients)"
