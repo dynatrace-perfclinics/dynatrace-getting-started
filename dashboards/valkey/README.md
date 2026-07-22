@@ -6,6 +6,7 @@ Dashboard + Anomaly detectors for [Valkey](https://valkey.io).
 ![valkey dashboard 2](images/valkey-dashboard-2.png)
 ![valkey dashboard 3](images/valkey-dashboard-3.png)
 ![valkey dashboard 4](images/valkey-dashboard-4.png)
+![valkey anomaly detectors](images/valkey-anomaly-detectors-1.png)
 
 ```
 Valkey <- reads - Prometheus Exporter <- scrapes - OTEL Collector - sends -> Dynatrace
