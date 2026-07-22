@@ -1,0 +1,42 @@
+schemaId: builtin:davis.anomaly-detectors
+scope: environment
+value:
+  # Requires Valkey 9.1+ with io-threads > 1 in valkey.conf for meaningful signal.
+  analyzer:
+    input:
+      - key: query.expression
+        value: |-
+          timeseries {active = avg(redis_io_threads_active), configured = avg(redis_config_io_threads)}
+          | fieldsAdd pct = active / configured * 100
+      - key: alertOnMissingData
+        value: "false"
+      - key: violatingSamples
+        value: "3"
+      - key: threshold
+        value: "80"
+      - key: dealertingSamples
+        value: "5"
+      - key: slidingWindow
+        value: "5"
+      - key: alertCondition
+        value: ABOVE
+    name: dt.statistics.ui.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer
+  description: ""
+  enabled: true
+  eventTemplate:
+    properties:
+      - key: dt.source_entity
+        value: '{dims:dt.source_entity}'
+      - key: event.type
+        value: CUSTOM_ALERT
+      - key: event.description
+        value: |-
+          Valkey I/O thread utilisation has exceeded 80%. All configured I/O threads are saturated — consider increasing io-threads in valkey.conf or reducing connection load.
+
+          Within the sliding window, {violating_samples} samples were {alert_condition} the threshold of {threshold}%.
+      - key: event.name
+        value: "Valkey: I/O threads saturated (>80% utilisation)"
+  executionSettings:
+    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -14
+  source: Custom Alerts
+  title: "Valkey: I/O threads saturated (>80% utilisation)"
