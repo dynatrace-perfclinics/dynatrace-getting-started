@@ -1,0 +1,41 @@
+schemaId: builtin:davis.anomaly-detectors
+scope: environment
+value:
+  analyzer:
+    input:
+      - key: query.expression
+        value: |-
+          timeseries {dur = avg(redis_commands_duration_seconds_total), cnt = avg(redis_commands_total)}, by: {cmd}
+          | fieldsAdd avg_ms = dur / cnt * 1000
+      - key: alertOnMissingData
+        value: "false"
+      - key: violatingSamples
+        value: "3"
+      - key: threshold
+        value: "1"
+      - key: dealertingSamples
+        value: "5"
+      - key: slidingWindow
+        value: "5"
+      - key: alertCondition
+        value: ABOVE
+    name: dt.statistics.ui.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer
+  description: ""
+  enabled: true
+  eventTemplate:
+    properties:
+      - key: dt.source_entity
+        value: '{dims:dt.source_entity}'
+      - key: event.type
+        value: CUSTOM_ALERT
+      - key: event.description
+        value: |-
+          Average Valkey command latency has exceeded 1ms for the '{dims:cmd}' command. This may indicate slow commands, memory pressure causing eviction cycles, or I/O saturation.
+
+          Within the sliding window, {violating_samples} samples were {alert_condition} the threshold of {threshold}ms.
+      - key: event.name
+        value: "Valkey: Tail latency spike — avg >1ms ({dims:cmd})"
+  executionSettings:
+    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+  source: Custom Alerts
+  title: "Valkey: Tail latency spike — avg >1ms"
