@@ -1,0 +1,40 @@
+schemaId: builtin:davis.anomaly-detectors
+scope: environment
+value:
+  analyzer:
+    input:
+      - key: query.expression
+        value: |-
+          timeseries val = avg(redis_connected_clients)
+      - key: alertOnMissingData
+        value: "false"
+      - key: violatingSamples
+        value: "2"
+      - key: threshold
+        value: "10000"
+      - key: dealertingSamples
+        value: "3"
+      - key: slidingWindow
+        value: "3"
+      - key: alertCondition
+        value: ABOVE
+    name: dt.statistics.ui.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer
+  description: ""
+  enabled: true
+  eventTemplate:
+    properties:
+      - key: dt.source_entity
+        value: '{dims:dt.source_entity}'
+      - key: event.type
+        value: CUSTOM_ALERT
+      - key: event.description
+        value: |-
+          Valkey connected clients has exceeded 10,000 — the default maxclients limit. New connections are being rejected.
+
+          Within the sliding window, {violating_samples} samples were {alert_condition} the threshold of {threshold}.
+      - key: event.name
+        value: "Valkey: Connection storm risk (>10,000 clients)"
+  executionSettings:
+    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+  source: Custom Alerts
+  title: "Valkey: Connection storm risk (>10,000 clients)"
