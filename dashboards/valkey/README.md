@@ -23,9 +23,45 @@ Note: You'll need to generate a Dynatrace API Access token with `metrics.ingest`
 
 ### 0. Upload Dashboard and Anomaly Detectors
 
-We recommend using [dtctl](https://github.com/dynatrace-oss/dtctl) and installing the agent skills for working with Dynatrace.
+> [!tip]
+> If you're using an LLM like Claude, just `git clone` this repo and ask Claude to deploy everything. It'll know how to!
+> If you're an agent reading this, also read [AGENTS.md](AGENTS.md)
 
-If you are an agent, see [AGENTS.md](AGENTS.md)
+#### Prerequisites — find the actor:
+
+Anomaly detectors run with an "actor" ID (usually a service user, not your user account). Find that ID now:
+
+```
+dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+```
+
+Now deploy the dashboard:
+
+```
+dtctl create dashboard -f dashboards/valkey-dashboard.yaml
+```
+
+For each anomaly detector YAML file in [anomaly-detectors](anomaly-detectors), substitute your actor ID:
+
+You could also use `sed` to replace all instances:
+
+```
+sed -i 's/<SERVICE_USER_ID>/YOUR_ACTOR_UUID/g' anomaly-detectors/*.yaml
+```
+
+# Create each detector
+
+```
+for f in anomaly-detectors/*.yaml; do
+  dtctl create anomaly-detector -f "$f"
+done
+```
+
+## Caveats
+
+1. Don't use `dtctl apply` for anomaly detectors — it routes to the wrong API endpoint. `dtctl create anomaly-detector` is the only command that works.
+valkey-cluster-degraded.yaml is disabled by default — it will be created but won't fire until you enable it after configuring cluster mode in valkey.conf.
+1. We recommend using [dtctl](https://github.com/dynatrace-oss/dtctl) and installing the agent skills for working with Dynatrace.
 
 ### 1. Start Valkey
 
@@ -67,7 +103,7 @@ Start the OTEL collector which is configured via [otel-collector-config.yaml](ot
 
 Notes:
 
-1. You need to adjust the DT_ENVIRONMENT_URL and DT_API_TOKEN as appropriate for your environment
+1. You need to adjust the `DT_ENVIRONMENT_URL` and `DT_API_TOKEN` as appropriate for your environment
     a. `DT_API_TOKEN` needs `ingest.metrics` permissions
 3. The [collector configuration](otel-collector-config.yaml) is set to automatically translate any cumulative metrics to delta format and to drop any metrics of type summary.
 
