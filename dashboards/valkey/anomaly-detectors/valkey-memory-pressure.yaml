@@ -1,0 +1,41 @@
+schemaId: builtin:davis.anomaly-detectors
+scope: environment
+value:
+  analyzer:
+    input:
+      - key: query.expression
+        value: |-
+          timeseries {used = avg(redis_memory_used_bytes), maxmem = avg(redis_memory_max_bytes)}
+          | fieldsAdd pct = used / maxmem * 100
+      - key: alertOnMissingData
+        value: "false"
+      - key: violatingSamples
+        value: "3"
+      - key: threshold
+        value: "85"
+      - key: dealertingSamples
+        value: "5"
+      - key: slidingWindow
+        value: "5"
+      - key: alertCondition
+        value: ABOVE
+    name: dt.statistics.ui.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer
+  description: ""
+  enabled: true
+  eventTemplate:
+    properties:
+      - key: dt.source_entity
+        value: '{dims:dt.source_entity}'
+      - key: event.type
+        value: CUSTOM_ALERT
+      - key: event.description
+        value: |-
+          Valkey used memory has exceeded 85% of maxmemory. Eviction is imminent under the configured eviction policy.
+
+          Within the sliding window, {violating_samples} samples were {alert_condition} the threshold of {threshold}%.
+      - key: event.name
+        value: "Valkey: Approaching eviction threshold (>85% memory)"
+  executionSettings:
+    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+  source: Custom Alerts
+  title: "Valkey: Approaching eviction threshold (>85% memory)"
