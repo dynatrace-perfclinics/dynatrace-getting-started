@@ -1,0 +1,42 @@
+schemaId: builtin:davis.anomaly-detectors
+scope: environment
+value:
+  # DISABLED: this instance runs in standalone mode (redis_cluster_enabled=0).
+  # Enable only after cluster mode is configured in valkey.conf.
+  analyzer:
+    input:
+      - key: query.expression
+        value: |-
+          timeseries val = avg(redis_cluster_enabled)
+      - key: alertOnMissingData
+        value: "false"
+      - key: violatingSamples
+        value: "2"
+      - key: threshold
+        value: "1"
+      - key: dealertingSamples
+        value: "3"
+      - key: slidingWindow
+        value: "3"
+      - key: alertCondition
+        value: BELOW
+    name: dt.statistics.ui.anomaly_detection.StaticThresholdAnomalyDetectionAnalyzer
+  description: ""
+  enabled: false
+  eventTemplate:
+    properties:
+      - key: dt.source_entity
+        value: '{dims:dt.source_entity}'
+      - key: event.type
+        value: CUSTOM_ALERT
+      - key: event.description
+        value: |-
+          Valkey cluster is no longer reporting a healthy state. The cluster may have lost quorum or entered fail state. Immediate investigation required.
+
+          Within the sliding window, {violating_samples} samples were {alert_condition} the threshold of {threshold}.
+      - key: event.name
+        value: "Valkey: Cluster degraded (cluster_state != ok)"
+  executionSettings:
+    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+  source: Custom Alerts
+  title: "Valkey: Cluster degraded (cluster_state != ok)"
