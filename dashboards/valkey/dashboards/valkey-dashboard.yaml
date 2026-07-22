@@ -651,12 +651,6 @@ content:
       type: markdown
   variables: []
   version: 21
-id: 45f2d063-9373-44d7-9942-033c7cb04cb1
 isPrivate: true
-modificationInfo:
-  createdTime: 2026-07-16T02:05:08.29Z
-  lastModifiedTime: 2026-07-16T05:26:50.973Z
 name: Valkey
-owner: 71e15935-a1d2-49cb-92fb-cf3fa98b6302
 type: dashboard
-version: 24
