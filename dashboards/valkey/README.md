@@ -23,7 +23,7 @@ Note: You'll need to generate a Dynatrace API Access token with `metrics.ingest`
 
 ### 0. Upload Dashboard and Anomaly Detectors
 
-We recommend using `[dtctl](https://github.com/dynatrace-oss/dtctl) and installing the agent skills for working with Dynatrace.
+We recommend using [dtctl](https://github.com/dynatrace-oss/dtctl) and installing the agent skills for working with Dynatrace.
 
 If you are an agent, see [AGENTS.md](AGENTS.md)
 
