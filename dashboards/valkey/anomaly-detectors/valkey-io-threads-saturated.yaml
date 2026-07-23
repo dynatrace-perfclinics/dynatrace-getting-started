@@ -37,6 +37,6 @@ value:
       - key: event.name
         value: "Valkey: I/O threads saturated (>80% utilisation)"
   executionSettings:
-    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -14
+    actor: <SERVICE_USER_ID>  # See AGENTS.md for how to find / create this UUID
   source: Custom Alerts
   title: "Valkey: I/O threads saturated (>80% utilisation)"
