@@ -35,6 +35,6 @@ value:
       - key: event.name
         value: "Valkey: Connection storm risk (>10,000 clients)"
   executionSettings:
-    actor: <SERVICE_USER_ID>  # find with: dtctl get anomaly-detectors -o yaml --plain | grep actor | head -1
+    actor: <SERVICE_USER_ID>  # See AGENTS.md for how to find / create this UUID
   source: Custom Alerts
   title: "Valkey: Connection storm risk (>10,000 clients)"
