@@ -64,8 +64,6 @@ done
 
 Re-running is safe — each file carries its `objectId`, so dtctl will update the existing detector rather than create a duplicate.
 
-> **Note:** Each detector file includes `executionSettings.actor: c235362c-eb2f-4157-b6da-6814fb842534`.
-> This is the environment's automation service user and is required — the API rejects requests where this field is absent.
-> If deploying to a different environment, replace this value with the target environment's service user ID,
-> which you can find by running `dtctl get anomaly-detectors -o yaml | grep actor` against an existing detector.
+## Service Users
 
+Some configuration requires an actor which is a service user and can be found in the templates as `actor: <SERVICE_USER_ID>`. If required, first investigate the required permissions for whatever config is going to be deployed (see https://dynatrace-oss.github.io/dtctl/docs/token-scopes). Once you have the permisions, tell the user to go to `https://myaccount.dynatrace.com`, select their account, click on "Identity & Access Management" then "Service Users" and create a service user with the permssions that you provide. Then tell them to copy the service user UUID and give it to you. You use this UUID to replace the template in each file before uploading the file.
