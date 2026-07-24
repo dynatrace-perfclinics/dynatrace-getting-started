@@ -66,4 +66,34 @@ Re-running is safe — each file carries its `objectId`, so dtctl will update th
 
 ## Service Users
 
-Some configuration requires an actor which is a service user and can be found in the templates as `actor: <SERVICE_USER_ID>`. If required, first investigate the required permissions for whatever config is going to be deployed (see https://dynatrace-oss.github.io/dtctl/docs/token-scopes). Once you have the permisions, tell the user to go to `https://myaccount.dynatrace.com`, select their account, click on "Identity & Access Management" then "Service Users" and create a service user with the permssions that you provide. Then tell them to copy the service user UUID and give it to you. You use this UUID to replace the template in each file before uploading the file.
+Ref: https://docs.dynatrace.com/docs/manage/identity-access-management/user-and-group-management/access-service-users
+
+Some configuration requires an actor which is a service user and can be found in the templates as `actor: <SERVICE_USER_ID>`. First ask the user if they already have a service user. If they say yes, tell them where they can find the service UUID (`https://myaccount.dynatrace.com`, select their account, click "Identity & Access Management" > "Service Users" > copy the "Identifier" field.
+
+If they indicate they do not have one and if one is required, first investigate the required permissions for whatever config is going to be deployed (see `https://dynatrace-oss.github.io/dtctl/docs/token-scopes`). Once you have the permisions, tell the user they need to create a policy then bind that policy to a group then create a service user which is assigned to that group.
+
+### Create a Policy
+Go to `https://myaccount.dynatrace.com`, select their account, click on "Identity & Access Management" > "Policy management" > "Create Policy"
+
+Give the users an appropriate copy and paste permissions set such as:
+
+```
+ALLOW davis:analyzers:read;
+ALLOW davis:analyzers:execute;
+ALLOW storage:metrics:read;
+```
+
+Now they need to create a group.
+
+### Create a Group
+
+Go to `https://myaccount.dynatrace.com`, select their account, click on "Identity & Access Management" > "Group management" > "Create Group". Enter a group name and click create. Now click `+ Permission` and assign the policy just created. Assign the account and click save.
+
+Now create a service user and assign that user to the group.
+
+## Create a Service User
+
+Click on "Identity & Access Management" > "Service Users" > Add Service User. Provide a name and assign the group then save.
+
+Finally ask the user to copy the new service users UUID and provide it to you. You use this to replace the placeholder in the template.
+
