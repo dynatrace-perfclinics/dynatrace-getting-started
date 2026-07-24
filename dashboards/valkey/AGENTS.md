@@ -95,5 +95,5 @@ Now create a service user and assign that user to the group.
 
 Click on "Identity & Access Management" > "Service Users" > Add Service User. Provide a name and assign the group then save.
 
-Finally ask the user to copy the new service users UUID and provide it to you. You use this to replace the placeholder in the template.
+Finally ask the user to copy the new service users UUID and provide it to you. If you're given a UUID with the `@service.sso.dynatrace.com` suffix, strip that portion - you need to use only the UUID. You use this to replace the placeholder in the template.
 
